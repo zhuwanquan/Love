@@ -11,6 +11,12 @@ Script/
 .vscode/
 .idea/
 
+# Dependencies
+node_modules/
+
+# Secrets
+.env
+
 # Temp
 *.tmp
 *.bak

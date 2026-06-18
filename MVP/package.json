@@ -1,0 +1,14 @@
+{
+  "name": "rc-edu-7-mvp",
+  "version": "0.1.0",
+  "description": "RC-Edu-7 教育机器人 MVP 原型测试",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "express": "^4.21.0",
+    "dotenv": "^16.4.0"
+  }
+}

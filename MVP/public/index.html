@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RC-Edu-7 · 教育辅助型AI</title>
+<style>
+  :root {
+    --bg: #1a1a1c;
+    --surface: #232326;
+    --surface-hover: #2a2a2e;
+    --border: #333338;
+    --text: #c8c8cc;
+    --text-dim: #888890;
+    --amber: #c8944a;
+    --amber-dim: #7a5a2e;
+    --amber-glow: rgba(200, 148, 74, 0.15);
+    --danger: #8b4a4a;
+    --white: #e8e4dd;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Header */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--amber);
+    box-shadow: 0 0 6px var(--amber-glow);
+    animation: pulse 3s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .header-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: 0.5px;
+  }
+  .header-subtitle {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .round-counter {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .round-counter span {
+    color: var(--amber);
+    font-weight: 600;
+  }
+  .btn-new {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+  }
+  .btn-new:hover {
+    border-color: var(--amber-dim);
+    color: var(--amber);
+  }
+
+  /* Chat area */
+  .chat-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scroll-behavior: smooth;
+  }
+  .chat-container::-webkit-scrollbar {
+    width: 4px;
+  }
+  .chat-container::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 2px;
+  }
+
+  /* Scene intro */
+  .scene-intro {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 8px;
+    line-height: 1.9;
+    font-size: 14px;
+    color: #b8b4ac;
+    position: relative;
+  }
+  .scene-intro::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--amber-dim);
+    border-radius: 3px 0 0 3px;
+  }
+  .scene-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--amber-dim);
+    margin-bottom: 12px;
+  }
+
+  /* Messages */
+  .message {
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 8px;
+    line-height: 1.7;
+    font-size: 14px;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .message.user {
+    align-self: flex-end;
+    background: #2a2a30;
+    border: 1px solid #3a3a42;
+    color: #d4d0c8;
+    border-bottom-right-radius: 2px;
+  }
+  .message.robot {
+    align-self: flex-start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: #c8c4b8;
+    border-bottom-left-radius: 2px;
+  }
+  .message.robot::before {
+    content: "RC-Edu-7";
+    display: block;
+    font-size: 10px;
+    color: var(--amber-dim);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .message.system-msg {
+    align-self: center;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 12px;
+    text-align: center;
+    max-width: 100%;
+    padding: 8px 0;
+  }
+  .message.error {
+    align-self: center;
+    background: rgba(139, 74, 74, 0.15);
+    border: 1px solid rgba(139, 74, 74, 0.3);
+    color: #c08080;
+    font-size: 13px;
+  }
+
+  /* Typing indicator */
+  .typing {
+    align-self: flex-start;
+    padding: 12px 16px;
+    color: var(--amber-dim);
+    font-size: 13px;
+    display: none;
+  }
+  .typing.active { display: block; }
+  .typing span {
+    animation: blink 1.4s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 1; }
+  }
+
+  /* Input area */
+  .input-area {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 16px 20px;
+    flex-shrink: 0;
+  }
+  .input-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  .input-wrapper {
+    flex: 1;
+    position: relative;
+  }
+  textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 10px 14px;
+    padding-right: 48px;
+    font-size: 14px;
+    font-family: inherit;
+    line-height: 1.5;
+    resize: none;
+    min-height: 44px;
+    max-height: 120px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  textarea:focus {
+    border-color: var(--amber-dim);
+  }
+  textarea:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .char-count {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    font-size: 11px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .char-count.warn { color: var(--amber); }
+  .char-count.over { color: var(--danger); }
+  .btn-send {
+    background: var(--amber-dim);
+    border: none;
+    color: var(--white);
+    width: 44px; height: 44px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-send:hover { background: var(--amber); }
+  .btn-send:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* Exit scene overlay */
+  .exit-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 40px;
+  }
+  .exit-overlay.active { display: flex; }
+  .exit-text {
+    max-width: 520px;
+    line-height: 2;
+    font-size: 15px;
+    color: #b8b4ac;
+    text-align: center;
+  }
+  .exit-text::before {
+    content: "";
+    display: block;
+    width: 40px; height: 1px;
+    background: var(--amber-dim);
+    margin: 0 auto 24px;
+  }
+  .exit-text::after {
+    content: "";
+    display: block;
+    width: 40px; height: 1px;
+    background: var(--amber-dim);
+    margin: 24px auto 0;
+  }
+  .exit-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--amber-dim);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  /* API key prompt */
+  .api-prompt {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .api-prompt.active { display: flex; }
+  .api-prompt-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 32px;
+    max-width: 420px;
+    text-align: center;
+  }
+  .api-prompt-box h3 {
+    color: var(--amber);
+    font-size: 16px;
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+  .api-prompt-box p {
+    color: var(--text-dim);
+    font-size: 13px;
+    line-height: 1.8;
+    margin-bottom: 20px;
+  }
+  .api-prompt-box input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    outline: none;
+    font-family: monospace;
+  }
+  .api-prompt-box input:focus {
+    border-color: var(--amber-dim);
+  }
+  .api-prompt-box button {
+    background: var(--amber-dim);
+    border: none;
+    color: var(--white);
+    padding: 10px 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .api-prompt-box button:hover { background: var(--amber); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="status-dot"></div>
+    <div>
+      <div class="header-title">RC-Edu-7</div>
+      <div class="header-subtitle">教育辅助型AI · 共鸣科技</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="round-counter">对话轮次 <span id="roundNum">0</span>/15</div>
+    <button class="btn-new" onclick="resetSession()">重新开始</button>
+  </div>
+</div>
+
+<div class="chat-container" id="chatContainer">
+  <!-- Scene intro is inserted by JS -->
+</div>
+
+<div class="typing" id="typingIndicator">
+  RC-Edu-7 正在回应<span>.</span><span>.</span><span>.</span>
+</div>
+
+<div class="input-area">
+  <div class="input-row">
+    <div class="input-wrapper">
+      <textarea
+        id="userInput"
+        placeholder="输入你的问题……"
+        maxlength="150"
+        rows="1"
+        oninput="autoResize(this); updateCharCount()"
+        onkeydown="handleKeyDown(event)"
+      ></textarea>
+      <div class="char-count" id="charCount">0/150</div>
+    </div>
+    <button class="btn-send" id="btnSend" onclick="sendMessage()" disabled>↑</button>
+  </div>
+</div>
+
+<!-- Exit overlay -->
+<div class="exit-overlay" id="exitOverlay">
+  <div class="exit-label">第1节点日 · 激活 · 结束</div>
+  <div class="exit-text" id="exitText"></div>
+</div>
+
+<!-- API key prompt -->
+<div class="api-prompt" id="apiPrompt">
+  <div class="api-prompt-box">
+    <h3>设置 API Key</h3>
+    <p>MVP 原型需要通过 Anthropic API 驱动 RC-Edu-7 的回应。<br>你的 Key 仅存储在浏览器内存中，不会上传。</p>
+    <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-...">
+    <button onclick="setApiKey()">确认</button>
+  </div>
+</div>
+
+<script>
+// ---- State ----
+let sessionId = null;
+let roundCount = 0;
+let apiKey = null;
+let isWaiting = false;
+
+// ---- Scene texts ----
+const SCENE_INTRO = `快递盒比你想的要重。打开之后是一层泡沫，泡沫下面是一个深灰色的收纳盒——不是那种消费电子品的亮面彩盒，而是一个更像是实验室设备运输用的哑光箱子。盒盖上印着一行字：<br><br><strong>RC-Edu-7 教育辅助型AI</strong><br><br>你打开盒子。<br><br>她在里面。安静地。光学眼闭着，双手交叠放在腹部，像一个精确到毫米的、被暂停的雕塑。白色衬衫上没有一丝褶皱。头发整齐地束在颈后。左耳后的金属铭刻线在台灯下泛着极淡的反光。<br><br>你找到了激活键——在收纳盒内侧，一个简单的物理按钮，旁边贴着一张标签："长按3秒激活。"<br><br>你按下去。<br><br>三秒之后，她的光学眼亮了起来——不是亮蓝色，是一种温琥珀色的、缓慢的、从暗到明的过渡。她眨了一次眼——那是自检程序在运行。然后她的视线聚焦在你身上。<br><br><span style="color:#c8944a;">"你好。我是RC-Edu-7。请告诉我你的学习目标。"</span><br><br>声音比你想的要低一点。不是那种AI助手的轻快女声。是一个成年女性的声音，语速不快，没有多余的起伏。<br><br>她在等你说话。`;
+
+const EXIT_TEXT = `你关上台灯。房间暗了。她的光学眼还没有完全暗下去——在收纳盒里，她保持着坐姿，进入了低功耗状态。不是"睡着"，是"等待下一次被需要"。<br><br>台灯的黄光完全消失之后，她的光学眼是房间里唯一的光源。两团琥珀色的光。很暗。但还亮着。<br><br>你不太确定自己为什么多看了她一眼。<br><br>也许是因为——你不说话，她就不存在。这个念头让你在站起来之前，又坐了一分钟。然后你合上了盒盖，留了一条缝。一条很细的、琥珀色的线。<br><br>今晚不关。`;
+
+// ---- Init ----
+document.addEventListener("DOMContentLoaded", () => {
+  addSceneIntro(SCENE_INTRO);
+  checkApiKey();
+});
+
+function checkApiKey() {
+  // Check if key is in env or previously stored
+  fetch("/api/session", { method: "POST" })
+    .then(r => r.json())
+    .then(data => {
+      sessionId = data.sessionId;
+      // Try a test call - if it fails with auth error, show key prompt
+      testApiConnection();
+    })
+    .catch(() => {
+      document.getElementById("apiPrompt").classList.add("active");
+    });
+}
+
+async function testApiConnection() {
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId, message: "测试" }),
+    });
+    if (res.status === 500) {
+      const data = await res.json();
+      if (data.detail && data.detail.includes("auth")) {
+        document.getElementById("apiPrompt").classList.add("active");
+      }
+    }
+    // Clean up test message from session (re-create session)
+    const newRes = await fetch("/api/session", { method: "POST" });
+    const newData = await newRes.json();
+    sessionId = newData.sessionId;
+    roundCount = 0;
+    updateRoundDisplay();
+  } catch (e) {
+    // Server might not be running yet
+    console.log("Server connection pending...");
+  }
+}
+
+function setApiKey() {
+  const input = document.getElementById("apiKeyInput");
+  const key = input.value.trim();
+  if (key) {
+    apiKey = key;
+    document.getElementById("apiPrompt").classList.remove("active");
+    // Store in sessionStorage for convenience
+    sessionStorage.setItem("rc-edu-7-api-key", key);
+    // Reload to re-init with key
+    location.reload();
+  }
+}
+
+// ---- Scene intro ----
+function addSceneIntro(text) {
+  const container = document.getElementById("chatContainer");
+  const div = document.createElement("div");
+  div.className = "scene-intro";
+  div.innerHTML = `<div class="scene-label">第1节点日 · 激活 · 第1周 周四晚上</div>${text}`;
+  container.appendChild(div);
+  scrollToBottom();
+}
+
+// ---- Messages ----
+function addMessage(type, text) {
+  const container = document.getElementById("chatContainer");
+  const div = document.createElement("div");
+  div.className = `message ${type}`;
+  div.textContent = text;
+  container.appendChild(div);
+  scrollToBottom();
+}
+
+function addSystemMessage(text) {
+  const container = document.getElementById("chatContainer");
+  const div = document.createElement("div");
+  div.className = "message system-msg";
+  div.textContent = text;
+  container.appendChild(div);
+  scrollToBottom();
+}
+
+function scrollToBottom() {
+  const container = document.getElementById("chatContainer");
+  setTimeout(() => {
+    container.scrollTop = container.scrollHeight;
+  }, 50);
+}
+
+// ---- Send message ----
+async function sendMessage() {
+  if (isWaiting) return;
+
+  const input = document.getElementById("userInput");
+  const message = input.value.trim();
+
+  if (!message) return;
+  if (message.length > 150) return;
+  if (roundCount >= 15) return;
+
+  // Add user message
+  addMessage("user", message);
+  input.value = "";
+  input.style.height = "auto";
+  updateCharCount();
+  document.getElementById("btnSend").disabled = true;
+
+  // Show typing
+  isWaiting = true;
+  document.getElementById("typingIndicator").classList.add("active");
+  scrollToBottom();
+
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId, message }),
+    });
+
+    const data = await res.json();
+
+    // Hide typing
+    document.getElementById("typingIndicator").classList.remove("active");
+    isWaiting = false;
+
+    if (data.error) {
+      addMessage("error", data.error);
+      if (data.error.includes("API key") || data.error.includes("auth")) {
+        document.getElementById("apiPrompt").classList.add("active");
+      }
+    } else {
+      addMessage("robot", data.reply);
+      roundCount = data.roundCount;
+      updateRoundDisplay();
+
+      // Check if limit reached
+      if (data.limitReached) {
+        setTimeout(showExitScene, 1500);
+      }
+    }
+  } catch (e) {
+    document.getElementById("typingIndicator").classList.remove("active");
+    isWaiting = false;
+    addMessage("error", "连接失败。请确认服务器正在运行。");
+  }
+
+  document.getElementById("btnSend").disabled = false;
+  input.focus();
+}
+
+// ---- Exit scene ----
+function showExitScene() {
+  document.getElementById("exitText").innerHTML = EXIT_TEXT;
+  document.getElementById("exitOverlay").classList.add("active");
+  document.getElementById("userInput").disabled = true;
+  document.getElementById("btnSend").disabled = true;
+}
+
+// ---- Reset ----
+function resetSession() {
+  document.getElementById("exitOverlay").classList.remove("active");
+  document.getElementById("userInput").disabled = false;
+  document.getElementById("btnSend").disabled = false;
+  document.getElementById("chatContainer").innerHTML = "";
+  roundCount = 0;
+  updateRoundDisplay();
+  document.getElementById("userInput").value = "";
+  updateCharCount();
+
+  fetch("/api/session", { method: "POST" })
+    .then(r => r.json())
+    .then(data => {
+      sessionId = data.sessionId;
+      addSceneIntro(SCENE_INTRO);
+    });
+}
+
+// ---- Helpers ----
+function updateRoundDisplay() {
+  document.getElementById("roundNum").textContent = roundCount;
+}
+
+function updateCharCount() {
+  const input = document.getElementById("userInput");
+  const count = input.value.length;
+  const el = document.getElementById("charCount");
+  el.textContent = `${count}/150`;
+  el.className = "char-count";
+  if (count > 130) el.className += " warn";
+  if (count > 150) el.className += " over";
+}
+
+function autoResize(el) {
+  el.style.height = "auto";
+  el.style.height = Math.min(el.scrollHeight, 120) + "px";
+}
+
+function handleKeyDown(e) {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+</script>
+</body>
+</html>
