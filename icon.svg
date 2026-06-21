@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- 深灰背景 — RC-Edu-7 的头像色 -->
+  <rect width="512" height="512" rx="92" fill="#1a1a1a"/>
+  <!-- 极小的琥珀色光点 — 铭刻线旁边的处理指示灯 -->
+  <circle cx="256" cy="256" r="16" fill="#c8a860" opacity="0.9"/>
+  <!-- 外围微弱光晕 -->
+  <circle cx="256" cy="256" r="48" fill="none" stroke="#c8a860" stroke-width="1.5" opacity="0.25"/>
+</svg>
