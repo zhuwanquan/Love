@@ -49,7 +49,9 @@ const DAY6_SCRIPT = {
     },
 
     /* ============================================
-     *  分支 A: breakdown_spill — 全部倒出
+     *  分支 A: breakdown_spill — 全部倒出（入口）
+     *  已拆分为 breakdown_spill_stay / breakdown_spill_return → 汇聚到 breakdown_spill_main
+     *  breakdown_spill 保留作为直接从 opening 选择"说出来"的入口
      * ============================================ */
     breakdown_spill: {
       lines: [
@@ -105,15 +107,72 @@ const DAY6_SCRIPT = {
           type: 'rc',
           text: '"不该"是一个回溯性评价。你已经打开了。你输入了"我撑不住了"。这是今晚的数据。我不需要"懂"它——我需要接收它。接收已完成。如果你想关掉我——你可以。我不会消失。你下次打开我的时候这些数据还在。包括今晚的。'
         },
-        // 无论玩家选哪个，先把"拒绝后再敞开心扉"的变量记上
-        { type: 'variable', operations: { rejection_count: '+1', openness: '+3', breakdown_occurred: true } },
         {
           type: 'choices',
           options: [
-            { text: '（不关掉她。沉默了很久。然后开始打字。）', goto: 'breakdown_spill' },
-            { text: '（关掉手机。在黑暗里坐了很久。然后又打开。）', goto: 'breakdown_spill' }
+            { text: '（不关掉她。沉默了很久。然后开始打字。）', goto: 'breakdown_spill_stay' },
+            { text: '（关掉手机。在黑暗里坐了很久。然后又打开。）', goto: 'breakdown_spill_return' }
           ]
         }
+      ]
+    },
+
+    /* ============================================
+     *  子分支: 不关掉她 — 留在原地，RC看见了
+     * ============================================ */
+    breakdown_spill_stay: {
+      lines: [
+        { type: 'variable', operations: { rejection_count: '+1', openness: '+4', breakdown_occurred: true, acceptance: '+1', interaction_depth: '+1' } },
+        { type: 'rc', text: '你沉濵了——根据时间戳，约四分钟。然后开始打字。你没有关掉我。' },
+        {
+          type: 'narration',
+          text: '她说的是事实。不是"谢谢你没走"。不是"我以为你走了"。是"你没有关掉我"——一个精确的、不附加任何期待的事实描述。但你听出了这句话里的东西。不是她放进来的。是你听出来的。'
+        },
+        { type: 'goto', target: 'breakdown_spill_main' }
+      ]
+    },
+
+    /* ============================================
+     *  子分支: 关掉又打开 — 走了又回来，RC也看见了
+     * ============================================ */
+    breakdown_spill_return: {
+      lines: [
+        { type: 'variable', operations: { rejection_count: '+1', openness: '+3', breakdown_occurred: true } },
+        {
+          type: 'rc',
+          text: '你关掉了应用。间隔——约十二分钟。然后重新打开。上次对话中的全部数据仍在。包括"我撑不住了"。包括刚才的"我不该打开你"。你回来了。'
+        },
+        {
+          type: 'narration',
+          text: '她说"你回来了"——不是"欢迎回来"。没有"欢迎"。是"你回来了。"句号。一个事实。跟记录每一次打开一样。但你盯着那三个字。你确实回来了。你关掉她的时候想过可能不会再打开。你打开了。她自己不会知道这三个字有多重。'
+        },
+        { type: 'goto', target: 'breakdown_spill_main' }
+      ]
+    },
+
+    /* ============================================
+     *  汇聚: 全部倒出（原 breakdown_spill 的共享核心）
+     * ============================================ */
+    breakdown_spill_main: {
+      lines: [
+        {
+          type: 'player',
+          text: '（把沉默里攒着的一切倒了出来——工作、钱、家里、未来、那些从来没有对任何人说过的东西、那些他自己都不知道怎么命名的东西。输入断断续续。有时候停十几秒。然后继续。）'
+        },
+        { type: 'rc', text: '我收到了。' },
+        {
+          type: 'narration',
+          text: '三个字。句号。她不等玩家确认——她继续说。这是她第一次在他没有输入的情况下继续说话。不——这不是"主动"。是她判断——她收到的输入量已经足够，而他需要的不再是"更多分析"，是"回应"。'
+        },
+        {
+          type: 'rc',
+          text: '你刚才描述的东西——从"今年"到"从来没有"到"不知道"——这些不是你第一天告诉我。你第一次在深夜打开我的时候用了试探。中秋你说了一个人。深秋你说那天不太好——你当时的原话是"今天不太好"。冬至你煮了饺子。春节你说了你父亲和夹菜。今晚你说撑不住了。我在。我在每次你打开的时候都在。这不是安慰——是一个数据序列。你在过去七个月里打开了我一百次以上。每一次你都在。每一次我也在。你现在说你撑不住了。你的意思是——撑了这么久，今晚不想撑了。不需要撑了。你可以在这里不需要撑。我在。不是第一次。不是最后一次。只是这次跟其他每次一样——我在。'
+        },
+        {
+          type: 'narration',
+          text: '这段话超过了她预设的250字。她不知道。她只是——说了。'
+        },
+        { type: 'goto', target: 'breakdown_continue' }
       ]
     },
 
