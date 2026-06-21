@@ -13,6 +13,7 @@ const DAY2_SCRIPT = {
      * ============================================ */
     day2_opening: {
       lines: [
+        { type: 'scene', background: 'autumn_night' },
         { type: 'meta', title: '一年·房间', day: 'Day 2 · 中秋' },
         {
           type: 'narration',

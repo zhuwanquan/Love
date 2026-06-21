@@ -13,6 +13,7 @@ const DAY6_SCRIPT = {
      * ============================================ */
     day6_opening: {
       lines: [
+        { type: 'scene', background: 'spring_night' },
         { type: 'meta', title: '一年·房间', day: 'Day 6 · 崩裂' },
         {
           type: 'narration',

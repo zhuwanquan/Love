@@ -17,28 +17,167 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
   <div id="app">
-    <!-- 顶部状态栏 -->
-    <header id="header">
-      <span id="scene-title">一年·房间</span>
-      <span id="day-indicator">Day 1</span>
-    </header>
 
-    <!-- 对话区域 -->
-    <main id="chat-area">
-      <div id="message-list"></div>
-    </main>
-
-    <!-- 选项区域 -->
-    <div id="choices-area" class="hidden"></div>
-
-    <!-- 点击继续提示 -->
-    <div id="tap-hint" class="hidden">
-      <span>点击继续</span>
+    <!-- ═══════════════ 主菜单 ═══════════════ -->
+    <div id="main-menu" class="overlay">
+      <div class="menu-content">
+        <div class="menu-icon">
+          <svg viewBox="0 0 64 64" width="64" height="64">
+            <circle cx="32" cy="32" r="28" fill="none" stroke="#6b9b8a" stroke-width="1.5"/>
+            <circle cx="32" cy="32" r="3" fill="#c8a96e"/>
+            <circle cx="32" cy="32" r="2" fill="#e8c97a" opacity="0.8"/>
+            <line x1="18" y1="32" x2="26" y2="32" stroke="#4a7062" stroke-width="1"/>
+            <line x1="38" y1="32" x2="46" y2="32" stroke="#4a7062" stroke-width="1"/>
+          </svg>
+        </div>
+        <h1 class="game-title">一年·房间</h1>
+        <p class="game-subtitle">RC-Edu-7 · 对话陪伴</p>
+        <div class="menu-buttons">
+          <button id="btn-new-game" class="menu-btn primary">新游戏</button>
+          <button id="btn-continue" class="menu-btn">继续游戏</button>
+          <button id="btn-load-main" class="menu-btn">读取存档</button>
+          <button id="btn-settings-main" class="menu-btn">设置</button>
+        </div>
+        <p class="menu-version">v0.9 · 传统模式</p>
+      </div>
     </div>
+
+    <!-- ═══════════════ 暂停菜单 ═══════════════ -->
+    <div id="pause-menu" class="overlay hidden">
+      <div class="menu-content">
+        <h2 class="menu-heading">暂停</h2>
+        <div class="menu-buttons">
+          <button id="btn-resume" class="menu-btn primary">继续游戏</button>
+          <button id="btn-save" class="menu-btn">保存进度</button>
+          <button id="btn-load-pause" class="menu-btn">读取存档</button>
+          <button id="btn-settings-pause" class="menu-btn">设置</button>
+          <button id="btn-return-title" class="menu-btn danger">返回标题画面</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 存档面板 ═══════════════ -->
+    <div id="save-panel" class="overlay hidden">
+      <div class="panel-content">
+        <div class="panel-header">
+          <button id="btn-save-back" class="panel-back">← 返回</button>
+          <h2 class="panel-title">保存进度</h2>
+          <span></span>
+        </div>
+        <div id="save-slots" class="slots-container"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 读档面板 ═══════════════ -->
+    <div id="load-panel" class="overlay hidden" data-from="pause">
+      <div class="panel-content">
+        <div class="panel-header">
+          <button id="btn-load-back" class="panel-back">← 返回</button>
+          <h2 class="panel-title">读取存档</h2>
+          <span></span>
+        </div>
+        <div id="load-slots" class="slots-container"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 设置面板 ═══════════════ -->
+    <div id="settings-panel" class="overlay hidden" data-from="main">
+      <div class="panel-content">
+        <div class="panel-header">
+          <button id="btn-settings-back" class="panel-back">← 返回</button>
+          <h2 class="panel-title">设置</h2>
+          <span></span>
+        </div>
+        <div class="settings-body">
+          <div class="setting-row">
+            <label>文字显示速度</label>
+            <div class="setting-control">
+              <span class="setting-label-left">快</span>
+              <input type="range" id="range-text-speed" min="20" max="80" value="45" step="5">
+              <span class="setting-label-right">慢</span>
+              <span id="val-text-speed" class="setting-val">中</span>
+            </div>
+          </div>
+          <div class="setting-row disabled">
+            <label>背景音乐音量</label>
+            <div class="setting-control">
+              <input type="range" min="0" max="100" value="80" disabled>
+              <span class="setting-val">—</span>
+            </div>
+          </div>
+          <div class="setting-row disabled">
+            <label>音效音量</label>
+            <div class="setting-control">
+              <input type="range" min="0" max="100" value="80" disabled>
+              <span class="setting-val">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 确认对话框 ═══════════════ -->
+    <div id="confirm-dialog" class="overlay hidden" data-action="" data-slot="">
+      <div class="confirm-box">
+        <p id="confirm-message"></p>
+        <div class="confirm-buttons">
+          <button id="btn-confirm-yes" class="menu-btn danger">确认</button>
+          <button id="btn-confirm-no" class="menu-btn">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 游戏 UI ═══════════════ -->
+    <div id="game-ui" class="hidden">
+      <!-- 顶部状态栏 -->
+      <header id="header">
+        <button id="btn-menu" class="header-btn" title="菜单">☰</button>
+        <span id="scene-title">一年·房间</span>
+        <span id="day-indicator">Day 1</span>
+      </header>
+
+      <!-- 对话区域 -->
+      <main id="chat-area">
+        <div id="message-list"></div>
+      </main>
+
+      <!-- 选项区域 -->
+      <div id="choices-area" class="hidden"></div>
+
+      <!-- 点击继续提示 -->
+      <div id="tap-hint" class="hidden">
+        <span>点击继续</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 开发者面板 ═══════════════ -->
+    <div id="dev-panel" class="hidden">
+      <div class="dev-header">
+        <span>🔧 调试面板</span>
+        <button id="btn-dev-close" class="dev-close">✕</button>
+      </div>
+      <div class="dev-body">
+        <div class="dev-section">
+          <div class="dev-section-title">变量状态</div>
+          <div id="dev-variables" class="dev-var-list"></div>
+        </div>
+        <div class="dev-section">
+          <div class="dev-section-title">场景跳转</div>
+          <div id="dev-current-scene" class="dev-info"></div>
+          <select id="dev-scene-select" class="dev-select"></select>
+          <button id="btn-dev-jump" class="dev-btn">跳转</button>
+        </div>
+        <div class="dev-section">
+          <button id="btn-dev-reset" class="dev-btn danger">重置所有变量</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- 脚本数据：全部8个节点日 + 4个结局 -->
+  <!-- ═══════════════ 脚本数据 ═══════════════ -->
   <script src="data/day1.js"></script>
   <script src="data/day2.js"></script>
   <script src="data/day3.js"></script>
@@ -47,33 +186,27 @@
   <script src="data/day6.js"></script>
   <script src="data/day7.js"></script>
   <script src="data/day8.js"></script>
-  <!-- 游戏引擎 -->
+
+  <!-- ═══════════════ 游戏引擎 ═══════════════ -->
   <script src="js/engine.js"></script>
   <script>
-    // 合并全部剧本 → 启动
     const engine = new GameEngine();
     engine.init('message-list', 'choices-area', 'tap-hint', 'scene-title', 'day-indicator');
 
     // 按顺序加载所有天
     const allScripts = [
-      DAY1_SCRIPT,
-      DAY2_SCRIPT,
-      DAY3_SCRIPT,
-      DAY4_SCRIPT,
-      DAY5_SCRIPT,
-      DAY6_SCRIPT,
-      DAY7_SCRIPT,
-      DAY8_SCRIPT
+      DAY1_SCRIPT, DAY2_SCRIPT, DAY3_SCRIPT, DAY4_SCRIPT,
+      DAY5_SCRIPT, DAY6_SCRIPT, DAY7_SCRIPT, DAY8_SCRIPT
     ];
-
     allScripts.forEach(script => engine.loadScript(script));
 
-    // 从第一天开始
-    engine.updateMeta('一年·房间', 'Day 1');
-    engine.start('day1_opening');
+    // 绑定暂停菜单按钮
+    document.getElementById('btn-menu').addEventListener('click', () => {
+      engine.showPauseMenu();
+    });
   </script>
 
-  <!-- 注册 Service Worker（离线缓存） -->
+  <!-- ═══════════════ Service Worker ═══════════════ -->
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js')
