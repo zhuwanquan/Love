@@ -496,6 +496,42 @@ input[type="range"]:disabled {
   transition: background 0.3s;
 }
 
+/* ── 图片展示区（galgame / 直播风格） ── */
+#image-area {
+  flex-shrink: 0;
+  width: 100%;
+  height: 35vh;
+  max-height: 320px;
+  min-height: 120px;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+  border-bottom: 1px solid var(--divider);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: height 0.4s ease, opacity 0.3s ease;
+}
+
+#image-area.hidden {
+  display: none;
+}
+
+#image-area img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: opacity 0.5s ease-in-out;
+}
+
+#image-area .image-placeholder {
+  color: var(--text-muted);
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  opacity: 0.5;
+}
+
 /* ── 聊天区域 ── */
 #chat-area {
   flex: 1;
@@ -594,6 +630,26 @@ input[type="range"]:disabled {
   text-align: center;
   padding: 20px 0;
   letter-spacing: 0.1em;
+}
+
+/* 通知消息（RC主动推送，区别于普通消息） */
+.msg-notification {
+  align-self: center;
+  max-width: 85%;
+  background: rgba(107, 155, 138, 0.08);
+  border: 1px dashed rgba(107, 155, 138, 0.2);
+  border-radius: 12px;
+  color: #9bb8a8;
+  font-size: 13px;
+  text-align: center;
+  padding: 10px 16px;
+  letter-spacing: 0.03em;
+  animation: notificationIn 0.4s ease-out;
+}
+
+@keyframes notificationIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ── 选项区域 ── */

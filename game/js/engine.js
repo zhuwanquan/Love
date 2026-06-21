@@ -52,6 +52,11 @@ class GameEngine {
     this.sceneTitle = null;
     this.dayIndicator = null;
     this.chatArea = null;
+    this.imageArea = null;
+
+    // ── 通知/主动消息 ──
+    this._pendingNotifications = [];
+    this._autoAdvanceTimer = null;
 
     // ── 存档系统 ──
     this._saveKey = 'rcedu7_saves';
@@ -73,6 +78,17 @@ class GameEngine {
     this.sceneTitle = document.getElementById(sceneTitleId);
     this.dayIndicator = document.getElementById(dayIndicatorId);
     this.chatArea = document.getElementById('chat-area');
+    this.imageArea = document.getElementById('image-area');
+
+    // ── 图片区域点击 → 推进（galgame风格） ──
+    if (this.imageArea) {
+      this.imageArea.addEventListener('click', (e) => {
+        if (this.isWaitingForChoice) return;
+        if (this.isFinished) return;
+        if (this.isPaused) return;
+        this.advance();
+      });
+    }
 
     // ── 游戏区域点击 → 推进 ──
     if (this.chatArea) {
@@ -454,6 +470,35 @@ class GameEngine {
         this.processNext();
         break;
 
+      case 'image':
+        this._showImage(line.src, line.alt, line.transition, line.position);
+        this.isProcessing = false;
+        this.processNext();
+        break;
+
+      case 'image_hide':
+        this._hideImage();
+        this.isProcessing = false;
+        this.processNext();
+        break;
+
+      case 'notification':
+        // RC主动推送消息——渲染为特殊样式
+        this._renderNotification(line.text);
+        this.showTapHint();
+        this.isProcessing = false;
+        break;
+
+      case 'auto_advance':
+        // 自动推进——RC主动说话后，延迟自动进入下一行
+        this._autoAdvanceTimer = setTimeout(() => {
+          this._autoAdvanceTimer = null;
+          this.advance();
+        }, line.delay || 2000);
+        this.showTapHint(); // 仍然可以点击跳过
+        this.isProcessing = false;
+        break;
+
       default:
         console.warn(`未知行类型: ${line.type}`);
         this.showTapHint();
@@ -467,6 +512,7 @@ class GameEngine {
    */
   advance() {
     if (this.isProcessing) return;
+    this._cancelAutoAdvance();
     if (this._isTyping) {
       this._skipRequested = true;
       return;
@@ -776,6 +822,84 @@ class GameEngine {
     // 过渡动画
     if (transition === 'fade' || !transition) {
       app.style.transition = 'background 0.8s ease-in-out';
+    }
+  }
+
+  /* =========================================
+   *  图片展示（galgame风格）
+   * ========================================= */
+
+  _showImage(src, alt, transition, position) {
+    if (!this.imageArea) return;
+    const img = this.imageArea.querySelector('img');
+    if (!img) {
+      const newImg = document.createElement('img');
+      newImg.alt = alt || '';
+      newImg.style.position = 'absolute';
+      newImg.style.maxHeight = '100%';
+      newImg.style.width = 'auto';
+      this.imageArea.appendChild(newImg);
+    }
+    const imgEl = this.imageArea.querySelector('img');
+    if (!imgEl) return;
+
+    // 过渡动画
+    if (transition === 'fade') {
+      imgEl.style.opacity = '0';
+      imgEl.style.transition = 'opacity 0.5s ease-in-out';
+      setTimeout(() => {
+        imgEl.src = src;
+        imgEl.alt = alt || '';
+        imgEl.style.opacity = '1';
+      }, 50);
+    } else {
+      imgEl.src = src;
+      imgEl.alt = alt || '';
+      imgEl.style.opacity = '1';
+    }
+
+    // 位置：center（默认）/ left / right
+    if (position === 'left') imgEl.style.left = '0';
+    else if (position === 'right') imgEl.style.right = '0';
+    else imgEl.style.left = '50%';
+
+    this.imageArea.classList.remove('hidden');
+  }
+
+  _hideImage() {
+    if (!this.imageArea) return;
+    const img = this.imageArea.querySelector('img');
+    if (img) {
+      img.style.opacity = '0';
+      img.style.transition = 'opacity 0.3s ease-in-out';
+    }
+    setTimeout(() => {
+      this.imageArea.classList.add('hidden');
+      if (img) img.src = '';
+    }, 300);
+  }
+
+  /* =========================================
+   *  通知渲染（RC主动推送）
+   * ========================================= */
+
+  _renderNotification(text) {
+    const el = document.createElement('div');
+    el.className = 'msg msg-notification';
+    el.textContent = text;
+    this.messageList.appendChild(el);
+    this._addToHistory('notification', text);
+    this.scrollToBottom();
+  }
+
+  /* =========================================
+   *  自动推进管理
+   * ========================================= */
+
+  _cancelAutoAdvance() {
+    if (this._autoAdvanceTimer) {
+      clearTimeout(this._autoAdvanceTimer);
+      this._autoAdvanceTimer = null;
     }
   }
 
