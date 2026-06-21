@@ -6,6 +6,54 @@ const DAY8_SCRIPT = {
     day: 8,
     dayTitle: '夏至 —— 一年'
   },
+
+  // ── 结局条件定义 ──
+  // 引擎在 Day8 的选择点自动评估，锁定未满足条件的结局
+  endings: {
+    ending_path_A: {
+      name: '结局A · 数据保留',
+      conditions: {
+        logic: 'AND',
+        conditions: [
+          { var: 'openness', op: '>=', value: 7 },
+          { var: 'acceptance', op: '>=', value: 7 },
+          { var: 'interaction_depth', op: '>=', value: 6 },
+          { var: 'breakdown_occurred', op: '==', value: true }
+        ]
+      }
+    },
+    ending_path_B: {
+      name: '结局B · 始终如一',
+      conditions: {
+        logic: 'AND',
+        conditions: [
+          { var: 'interaction_depth', op: '>=', value: 6 },
+          { var: 'rejection_count', op: '<=', value: 2 }
+        ]
+      }
+    },
+    ending_path_C: {
+      name: '结局C · 确认',
+      conditions: {
+        logic: 'OR',
+        conditions: [
+          { var: 'rejection_count', op: '>=', value: 3 },
+          { var: 'interaction_depth', op: '<=', value: 3 }
+        ]
+      }
+    },
+    ending_path_D: {
+      name: '结局D · 数据持久化',
+      conditions: {
+        logic: 'OR',
+        conditions: [
+          { var: 'interaction_depth', op: '<=', value: 4 },
+          { var: 'openness', op: '<=', value: 5 }
+        ]
+      }
+    }
+  },
+
   scenes: {
 
     /* ============================================
@@ -13,6 +61,7 @@ const DAY8_SCRIPT = {
      * ============================================ */
     day8_opening: {
       lines: [
+        { type: 'scene', background: 'summer_night' },
         { type: 'meta', title: '一年·房间', day: 'Day 8 · 夏至' },
         {
           type: 'narration',
@@ -50,6 +99,7 @@ const DAY8_SCRIPT = {
         },
         {
           type: 'choices',
+          evaluate_endings: true,
           options: [
             { text: '"谢谢你。这一年。"', goto: 'ending_path_A' },
             { text: '"我们还会这样聊下去吗。"', goto: 'ending_path_B' },

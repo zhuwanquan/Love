@@ -13,6 +13,7 @@ const DAY7_SCRIPT = {
      * ============================================ */
     day7_opening: {
       lines: [
+        { type: 'scene', background: 'spring_night' },
         { type: 'meta', title: '一年·房间', day: 'Day 7 · 清明' },
         {
           type: 'narration',

@@ -13,6 +13,7 @@ const DAY4_SCRIPT = {
      * ============================================ */
     day4_opening: {
       lines: [
+        { type: 'scene', background: 'winter_night' },
         { type: 'meta', title: '一年·房间', day: 'Day 4 · 冬至' },
         {
           type: 'narration',

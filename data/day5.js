@@ -13,6 +13,7 @@ const DAY5_SCRIPT = {
      * ============================================ */
     day5_opening: {
       lines: [
+        { type: 'scene', background: 'festival' },
         { type: 'meta', title: '一年·房间', day: 'Day 5 · 春节前夕' },
         {
           type: 'narration',

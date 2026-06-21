@@ -13,6 +13,7 @@ const DAY3_SCRIPT = {
      * ============================================ */
     day3_opening: {
       lines: [
+        { type: 'scene', background: 'rainy_night' },
         { type: 'meta', title: '一年·房间', day: 'Day 3 · 深秋' },
         {
           type: 'narration',
