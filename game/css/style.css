@@ -1,5 +1,5 @@
 /* ============================================
- *  一年·房间 — RC-Edu-7 样式表 v2.0
+ *  一年·房间 — RC-7 样式表 v2.0
  * ============================================ */
 
 /* ── 基础重置 & 暗色主题 ── */
@@ -436,6 +436,50 @@ input[type="range"]:disabled {
   font-size: 14px;
 }
 
+/* ── 首次引导页 ── */
+.guide-content {
+  text-align: center;
+  padding: 24px 20px;
+  max-width: 340px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-height: 80vh;
+}
+
+.guide-icon {
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.guide-scroll {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  padding: 0 4px;
+  -webkit-overflow-scrolling: touch;
+  max-height: 50vh;
+}
+
+.guide-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.9;
+  text-align: left;
+  letter-spacing: 0.02em;
+}
+
+.guide-text strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.guide-content .menu-btn {
+  flex-shrink: 0;
+  width: 100%;
+}
+
 /* ============================================
  *  游戏 UI
  * ============================================ */
@@ -586,14 +630,86 @@ input[type="range"]:disabled {
   50% { opacity: 0; }
 }
 
-/* RC-Edu-7 消息（左侧） */
-.msg-rc {
+/* RC-7 消息容器（头像+气泡） */
+.msg-rc-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 88%;
   align-self: flex-start;
+  animation: fadeIn 0.25s ease-out;
+}
+
+/* RC-7 头像 — 深灰圆形+琥珀光点 */
+.rc-avatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  border: 1px solid var(--divider);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rc-avatar::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+  opacity: 0.85;
+  box-shadow: 0 0 4px rgba(200, 169, 110, 0.4);
+}
+
+/* RC-7 消息（左侧） */
+.msg-rc {
+  flex: 1;
   background: var(--rc-bubble);
   border: 1px solid var(--rc-border);
   color: #c5d5ce;
+  border-radius: 16px;
+  border-bottom-left-radius: 4px;
+  padding: 10px 14px;
+  font-size: 15px;
+  line-height: 1.65;
+  word-break: break-word;
+  white-space: pre-line;
+}
+
+/* 独立RC消息（无头像时回退） */
+.msg.msg-rc {
+  max-width: 82%;
+  align-self: flex-start;
+}
+
+/* ── "正在输入…" 指示器 ── */
+.typing-indicator {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 0 0 8px 0;
+  animation: fadeIn 0.2s ease-out;
+}
+.typing-indicator .typing-dots {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px;
+  background: var(--rc-bubble);
+  border: 1px solid var(--rc-border);
+  border-radius: 16px;
   border-bottom-left-radius: 4px;
 }
+.typing-indicator .typing-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  animation: typingBounce 1.4s ease-in-out infinite;
+}
+.typing-indicator .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
 /* 玩家消息（右侧） */
 .msg-player {

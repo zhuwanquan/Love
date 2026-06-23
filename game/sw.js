@@ -7,7 +7,7 @@
  * - 有新版本时后台静默更新
  */
 
-const CACHE_NAME = 'rc-edu-7-v1';
+const CACHE_NAME = 'rc-7-v1';
 const ASSETS = [
   './',
   'index.html',

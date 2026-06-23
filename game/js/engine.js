@@ -1,5 +1,5 @@
 /**
- * RC-Edu-7 传统模式游戏引擎 v2.0
+ * RC-7 传统模式游戏引擎 v2.0
  *
  * 职责：
  * 1. 加载剧本 JSON → 逐行渲染（含打字机效果）
@@ -59,7 +59,7 @@ class GameEngine {
     this._autoAdvanceTimer = null;
 
     // ── 存档系统 ──
-    this._saveKey = 'rcedu7_saves';
+    this._saveKey = 'rc7_saves';
     this._autoSaveSlot = 0;
     this._manualSlots = 5;
 
@@ -200,6 +200,28 @@ class GameEngine {
       document.getElementById('confirm-dialog').classList.add('hidden');
     });
 
+    // 引导页 — "开始对话"按钮
+    this._on('btn-guide-start', 'click', () => {
+      this._doStartNewGame();
+    });
+
+    // 结局面板
+    this._on('btn-ending-review', 'click', () => {
+      document.getElementById('ending-panel').classList.add('hidden');
+      document.getElementById('game-ui').classList.remove('hidden');
+      this.isPaused = false;
+      this.isFinished = true; // 仍然无法推进
+      this._scrollToTop();
+    });
+    this._on('btn-ending-restart', 'click', () => {
+      this._doStartNewGame();
+    });
+    this._on('btn-ending-menu', 'click', () => {
+      this._hideAllOverlays();
+      this._resetGameState();
+      this.showMainMenu();
+    });
+
     // 开发者面板
     this._on('btn-dev-close', 'click', () => this.toggleDevPanel());
     this._on('btn-dev-reset', 'click', () => this._devReset());
@@ -289,6 +311,23 @@ class GameEngine {
   }
 
   startNewGame() {
+    // 检查是否是首次启动（无存档=首次）
+    const hasSave = this.hasAnySave();
+    if (!hasSave) {
+      this._showGuide();
+    } else {
+      this._doStartNewGame();
+    }
+  }
+
+  _showGuide() {
+    this._hideAllOverlays();
+    document.getElementById('game-ui').classList.add('hidden');
+    document.getElementById('guide-overlay').classList.remove('hidden');
+    this.isPaused = true;
+  }
+
+  _doStartNewGame() {
     this._resetGameState();
     this._hideAllOverlays();
     document.getElementById('game-ui').classList.remove('hidden');
@@ -349,7 +388,7 @@ class GameEngine {
   }
 
   _hideAllOverlays() {
-    const overlays = ['main-menu', 'pause-menu', 'save-panel', 'load-panel', 'settings-panel', 'confirm-dialog'];
+    const overlays = ['main-menu', 'pause-menu', 'save-panel', 'load-panel', 'settings-panel', 'confirm-dialog', 'guide-overlay', 'ending-panel'];
     overlays.forEach(id => {
       const el = document.getElementById(id);
       if (el) el.classList.add('hidden');
@@ -530,18 +569,41 @@ class GameEngine {
       this.processNext();
     } else {
       const currentId = this.currentSceneId || '';
-      // Day8 结局场景没有 next，显示完结
       if (currentId.includes('ending') || currentId.includes('ending_')) {
-        this.renderMessageInstant('narration', '');
         this.isFinished = true;
         this.hideTapHint();
+        this.isProcessing = false;
+        // 显示结局面板
+        this._showEndingPanel(currentId);
       } else {
         this.renderMessageInstant('narration', '—— 未完待续 ——');
         this.isFinished = true;
         this.hideTapHint();
+        this.isProcessing = false;
       }
-      this.isProcessing = false;
     }
+  }
+
+  _showEndingPanel(sceneId) {
+    // 延迟一下，让玩家看到最后的叙事文本
+    setTimeout(() => {
+      this._hideAllOverlays();
+      const endingNameEl = document.getElementById('ending-name');
+      if (endingNameEl) {
+        // 从场景ID推断结局名称
+        const endingNames = {
+          'ending_path_A': '「数据保留」',
+          'ending_A_sequence': '「数据保留」',
+          'ending_path_B': '「始终如一」',
+          'ending_path_C': '「确认」',
+          'ending_path_D': '「数据持久化」'
+        };
+        const name = endingNames[sceneId] || '';
+        endingNameEl.textContent = name ? `结局 ${name}` : '故事结束';
+      }
+      document.getElementById('ending-panel').classList.remove('hidden');
+      this.isPaused = true;
+    }, 800);
   }
 
   /* =========================================
@@ -549,32 +611,108 @@ class GameEngine {
    * ========================================= */
 
   async _renderWithTypewriter(type, text) {
-    const el = document.createElement('div');
-    el.className = `msg msg-${type}`;
+    // RC消息：先显示"正在输入…"
+    if (type === 'rc') {
+      await this._showTypingIndicator();
+    }
 
-    if ((type === 'narration' || type === 'rc') && text.includes('\n\n')) {
-      // 多段落：逐段打字
-      const paragraphs = text.split('\n\n');
-      this.messageList.appendChild(el);
-      this.scrollToBottom();
+    const wrapper = document.createElement('div');
 
-      for (let i = 0; i < paragraphs.length; i++) {
-        if (i > 0) {
-          const br = document.createElement('br');
-          el.appendChild(br);
+    if (type === 'rc') {
+      // RC消息：头像+气泡容器
+      wrapper.className = 'msg-rc-wrapper';
+      const avatar = document.createElement('div');
+      avatar.className = 'rc-avatar';
+      wrapper.appendChild(avatar);
+
+      const bubble = document.createElement('div');
+      bubble.className = 'msg-rc';
+
+      if (text.includes('\n\n')) {
+        const paragraphs = text.split('\n\n');
+        wrapper.appendChild(bubble);
+        this.messageList.appendChild(wrapper);
+        this.scrollToBottom();
+        for (let i = 0; i < paragraphs.length; i++) {
+          if (i > 0) {
+            const br = document.createElement('br');
+            bubble.appendChild(br);
+          }
+          const span = document.createElement('span');
+          bubble.appendChild(span);
+          await this._typewriteInto(span, paragraphs[i]);
         }
-        const span = document.createElement('span');
-        el.appendChild(span);
-        await this._typewriteInto(span, paragraphs[i]);
+      } else {
+        wrapper.appendChild(bubble);
+        this.messageList.appendChild(wrapper);
+        this.scrollToBottom();
+        await this._typewriteInto(bubble, text);
       }
     } else {
-      this.messageList.appendChild(el);
-      this.scrollToBottom();
-      await this._typewriteInto(el, text);
+      // 其他类型（narration/player/transition）：直接渲染
+      const el = document.createElement('div');
+      el.className = `msg msg-${type}`;
+
+      if ((type === 'narration') && text.includes('\n\n')) {
+        const paragraphs = text.split('\n\n');
+        this.messageList.appendChild(el);
+        this.scrollToBottom();
+        for (let i = 0; i < paragraphs.length; i++) {
+          if (i > 0) {
+            const br = document.createElement('br');
+            el.appendChild(br);
+          }
+          const span = document.createElement('span');
+          el.appendChild(span);
+          await this._typewriteInto(span, paragraphs[i]);
+        }
+      } else {
+        this.messageList.appendChild(el);
+        this.scrollToBottom();
+        await this._typewriteInto(el, text);
+      }
     }
 
     // 记录到历史
     this._addToHistory(type, text);
+  }
+
+  async _showTypingIndicator() {
+    // 创建"正在输入…"指示器
+    const indicator = document.createElement('div');
+    indicator.className = 'typing-indicator';
+    // 头像
+    const avatar = document.createElement('div');
+    avatar.className = 'rc-avatar';
+    indicator.appendChild(avatar);
+    // 三个点
+    const dots = document.createElement('div');
+    dots.className = 'typing-dots';
+    for (let i = 0; i < 3; i++) {
+      const dot = document.createElement('span');
+      dot.className = 'typing-dot';
+      dots.appendChild(dot);
+    }
+    indicator.appendChild(dots);
+    this.messageList.appendChild(indicator);
+    this.scrollToBottom();
+
+    // 等待3秒（可跳过）
+    const delay = 3000;
+    const startTime = Date.now();
+    this._isTyping = true;
+    this._skipRequested = false;
+    while (Date.now() - startTime < delay) {
+      if (this._skipRequested) break;
+      await this._delay(100);
+    }
+    this._isTyping = false;
+    this._skipRequested = false;
+
+    // 移除指示器
+    if (indicator.parentNode) {
+      indicator.parentNode.removeChild(indicator);
+    }
   }
 
   async _typewriteInto(element, text) {
@@ -609,20 +747,41 @@ class GameEngine {
 
   renderMessageInstant(type, text) {
     if (!text) return;
-    const el = document.createElement('div');
-    el.className = `msg msg-${type}`;
 
-    if ((type === 'narration' || type === 'rc') && text.includes('\n\n')) {
-      const paragraphs = text.split('\n\n');
-      paragraphs.forEach((p, i) => {
-        if (i > 0) el.appendChild(document.createElement('br'));
-        el.appendChild(document.createTextNode(p));
-      });
+    if (type === 'rc') {
+      // RC消息：头像+气泡
+      const wrapper = document.createElement('div');
+      wrapper.className = 'msg-rc-wrapper';
+      const avatar = document.createElement('div');
+      avatar.className = 'rc-avatar';
+      wrapper.appendChild(avatar);
+      const bubble = document.createElement('div');
+      bubble.className = 'msg-rc';
+      if (text.includes('\n\n')) {
+        const paragraphs = text.split('\n\n');
+        paragraphs.forEach((p, i) => {
+          if (i > 0) bubble.appendChild(document.createElement('br'));
+          bubble.appendChild(document.createTextNode(p));
+        });
+      } else {
+        bubble.textContent = text;
+      }
+      wrapper.appendChild(bubble);
+      this.messageList.appendChild(wrapper);
     } else {
-      el.textContent = text;
+      const el = document.createElement('div');
+      el.className = `msg msg-${type}`;
+      if ((type === 'narration') && text.includes('\n\n')) {
+        const paragraphs = text.split('\n\n');
+        paragraphs.forEach((p, i) => {
+          if (i > 0) el.appendChild(document.createElement('br'));
+          el.appendChild(document.createTextNode(p));
+        });
+      } else {
+        el.textContent = text;
+      }
+      this.messageList.appendChild(el);
     }
-
-    this.messageList.appendChild(el);
     this.scrollToBottom();
   }
 
@@ -927,13 +1086,21 @@ class GameEngine {
     }
   }
 
+  _scrollToTop() {
+    if (this.chatArea) {
+      requestAnimationFrame(() => {
+        this.chatArea.scrollTop = 0;
+      });
+    }
+  }
+
   /* ============================================
    *  设置系统
    * ============================================ */
 
   _loadSettings() {
     try {
-      const raw = localStorage.getItem('rcedu7_settings');
+      const raw = localStorage.getItem('rc7_settings');
       if (raw) return JSON.parse(raw);
     } catch (e) { /* ignore */ }
     return { textSpeed: 45, bgmVolume: 80, sfxVolume: 80 };
@@ -941,7 +1108,7 @@ class GameEngine {
 
   _saveSettings() {
     try {
-      localStorage.setItem('rcedu7_settings', JSON.stringify(this._settings));
+      localStorage.setItem('rc7_settings', JSON.stringify(this._settings));
     } catch (e) { /* ignore */ }
   }
 

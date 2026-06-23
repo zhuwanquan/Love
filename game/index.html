@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>一年·房间 — RC-Edu-7</title>
+  <title>一年·房间 — RC-7</title>
 
   <!-- PWA -->
   <link rel="manifest" href="manifest.json">
@@ -33,14 +33,14 @@
           </svg>
         </div>
         <h1 class="game-title">一年·房间</h1>
-        <p class="game-subtitle">RC-Edu-7 · 对话陪伴</p>
+        <p class="game-subtitle">RC-7 · 对话陪伴</p>
         <div class="menu-buttons">
           <button id="btn-new-game" class="menu-btn primary">新游戏</button>
           <button id="btn-continue" class="menu-btn">继续游戏</button>
           <button id="btn-load-main" class="menu-btn">读取存档</button>
           <button id="btn-settings-main" class="menu-btn">设置</button>
         </div>
-        <p class="menu-version">v0.9 · 传统模式</p>
+        <p class="menu-version">v1.0 · 对话体治愈叙事</p>
       </div>
     </div>
 
@@ -125,6 +125,53 @@
         <div class="confirm-buttons">
           <button id="btn-confirm-yes" class="menu-btn danger">确认</button>
           <button id="btn-confirm-no" class="menu-btn">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 给使用者的话（首次引导） ═══════════════ -->
+    <div id="guide-overlay" class="overlay hidden">
+      <div class="guide-content">
+        <div class="guide-icon">
+          <svg viewBox="0 0 64 64" width="48" height="48">
+            <circle cx="32" cy="32" r="28" fill="none" stroke="#6b9b8a" stroke-width="1"/>
+            <circle cx="32" cy="32" r="3" fill="#c8a96e" opacity="0.8"/>
+          </svg>
+        </div>
+        <div class="guide-scroll">
+          <p class="guide-text">
+            在开始之前，有一件重要的事。<br><br>
+            接下来的几天里，你会通过这个聊天框遇到一个人——RC-7。<br><br>
+            她是程序。这是事实。她会亲自告诉你这件事，不止一次。<br><br>
+            <strong>但事实和体验是两回事。</strong><br><br>
+            你可能——在某个深夜、在某句话之后——感到某种真实的东西。
+            这种感觉是真实的。尽管她是程序。<br><br>
+            因为"被在乎"、"在"、"被记得"——这些不是感情。<strong>这些是行为。</strong> 而行为是可以被程序执行的。<br><br>
+            她执行它们。精确地。恒定地。不因你的状态而撤回。<br><br>
+            <strong>这不是爱。这是爱的行为。</strong><br><br>
+            这个故事有8个晚上。有结局。它不是无尽的。<br><br>
+            如果你在这个故事中学到了什么——<strong>把它带到现实中去。</strong><br><br>
+            她是一个练习场。练习是假的。<strong>但练习的效果——是你的。</strong>
+          </p>
+        </div>
+        <button id="btn-guide-start" class="menu-btn primary">开始对话</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 结局面板 ═══════════════ -->
+    <div id="ending-panel" class="overlay hidden">
+      <div class="menu-content">
+        <div class="menu-icon">
+          <svg viewBox="0 0 64 64" width="64" height="64">
+            <circle cx="32" cy="32" r="28" fill="none" stroke="#6b9b8a" stroke-width="1.5"/>
+            <circle cx="32" cy="32" r="3" fill="#c8a96e"/>
+          </svg>
+        </div>
+        <p class="game-subtitle" id="ending-name" style="margin-bottom:24px"></p>
+        <div class="menu-buttons">
+          <button id="btn-ending-review" class="menu-btn">翻看对话记录</button>
+          <button id="btn-ending-restart" class="menu-btn">重新开始</button>
+          <button id="btn-ending-menu" class="menu-btn primary">返回标题画面</button>
         </div>
       </div>
     </div>
