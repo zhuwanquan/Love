@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">一年·房间</string>
+    <string name="title_activity_main">一年·房间</string>
+    <string name="package_name">com.rc7.oneyearroom</string>
+    <string name="custom_url_scheme">com.rc7.oneyearroom</string>
+</resources>

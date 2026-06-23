@@ -204,6 +204,25 @@ html, body {
   background: rgba(139, 92, 92, 0.2);
 }
 
+.menu-divider {
+  height: 1px;
+  background: var(--divider);
+  margin: 4px 0;
+  opacity: 0.5;
+}
+
+.menu-row {
+  display: flex;
+  gap: 8px;
+}
+
+.menu-btn.small {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
 /* ============================================
  *  面板通用
  * ============================================ */

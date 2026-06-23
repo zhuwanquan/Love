@@ -1,0 +1,17 @@
+{
+  "appId": "com.rc7.oneyearroom",
+  "appName": "一年·房间",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "Filesystem": {
+      "androidPermissions": []
+    }
+  },
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#0d0d0d"
+  }
+}

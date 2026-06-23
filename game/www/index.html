@@ -40,7 +40,7 @@
           <button id="btn-load-main" class="menu-btn">读取存档</button>
           <button id="btn-settings-main" class="menu-btn">设置</button>
         </div>
-        <p class="menu-version">v1.0 · 对话体治愈叙事</p>
+        <p class="menu-version">v2.0 · 恋爱模拟 · 治愈叙事</p>
       </div>
     </div>
 
@@ -54,6 +54,11 @@
           <button id="btn-load-pause" class="menu-btn">读取存档</button>
           <button id="btn-settings-pause" class="menu-btn">设置</button>
           <button id="btn-return-title" class="menu-btn danger">返回标题画面</button>
+          <div class="menu-divider"></div>
+          <div class="menu-row">
+            <button id="btn-export" class="menu-btn small">📤 导出存档</button>
+            <button id="btn-import" class="menu-btn small">📥 导入存档</button>
+          </div>
         </div>
       </div>
     </div>
@@ -228,6 +233,12 @@
     </div>
 
   </div>
+
+  <!-- ═══════════════ Capacitor 原生桥接（仅打包 APP 时使用） ═══════════════ -->
+  <script src="js/vendor/capacitor.js"></script>
+  <script src="js/vendor/plugin.js"></script>
+  <!-- ═══════════════ 存储适配层 ═══════════════ -->
+  <script src="js/storage.js"></script>
 
   <!-- ═══════════════ 脚本数据 ═══════════════ -->
   <script src="data/day1.js"></script>

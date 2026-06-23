@@ -222,6 +222,10 @@ class GameEngine {
       this.showMainMenu();
     });
 
+    // 导出/导入存档
+    this._on('btn-export', 'click', () => this._exportData());
+    this._on('btn-import', 'click', () => this._importData());
+
     // 开发者面板
     this._on('btn-dev-close', 'click', () => this.toggleDevPanel());
     this._on('btn-dev-reset', 'click', () => this._devReset());
@@ -724,9 +728,11 @@ class GameEngine {
     for (let i = 0; i < text.length; i++) {
       if (this._skipRequested) {
         element.textContent = text;
+        this.scrollToBottom();
         break;
       }
       element.textContent += text[i];
+      this.scrollToBottom();
       await this._delay(this._settings.textSpeed);
     }
 
@@ -1099,17 +1105,12 @@ class GameEngine {
    * ============================================ */
 
   _loadSettings() {
-    try {
-      const raw = localStorage.getItem('rc7_settings');
-      if (raw) return JSON.parse(raw);
-    } catch (e) { /* ignore */ }
-    return { textSpeed: 45, bgmVolume: 80, sfxVolume: 80 };
+    const saved = GameStorage.get('rc7_settings');
+    return saved || { textSpeed: 45, bgmVolume: 80, sfxVolume: 80 };
   }
 
   _saveSettings() {
-    try {
-      localStorage.setItem('rc7_settings', JSON.stringify(this._settings));
-    } catch (e) { /* ignore */ }
+    GameStorage.set('rc7_settings', this._settings);
   }
 
   showSettings(from) {
@@ -1131,18 +1132,11 @@ class GameEngine {
 
   /** 获取所有存档元数据 */
   _getAllSavesRaw() {
-    try {
-      const raw = localStorage.getItem(this._saveKey);
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) { return {}; }
+    return GameStorage.get(this._saveKey) || {};
   }
 
   _setAllSavesRaw(data) {
-    try {
-      localStorage.setItem(this._saveKey, JSON.stringify(data));
-    } catch (e) {
-      console.warn('存档写入失败:', e);
-    }
+    GameStorage.set(this._saveKey, data);
   }
 
   getAllSaves() {
@@ -1203,7 +1197,10 @@ class GameEngine {
   }
 
   _flashSaveIndicator(slot) {
-    const label = slot === 0 ? '自动存档' : `存档 ${slot}`;
+    let label;
+    if (slot === 0) label = '自动存档';
+    else if (slot === 'export') label = '已导出';
+    else label = `存档 ${slot}`;
     const indicator = document.getElementById('day-indicator');
     if (indicator) {
       const orig = indicator.textContent;
@@ -1380,6 +1377,47 @@ class GameEngine {
     dialog.dataset.slot = slot;
     document.getElementById('confirm-message').textContent = message;
     dialog.classList.remove('hidden');
+  }
+
+  /* ============================================
+   *  存档导出 / 导入
+   * ============================================ */
+
+  _exportData() {
+    const json = GameStorage.exportAll();
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const now = new Date();
+    const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    a.download = `RC7_Backup_${ts}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    this._flashSaveIndicator('export');
+  }
+
+  _importData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const result = GameStorage.importAll(ev.target.result);
+        if (result.success) {
+          alert(`✅ 导入成功！已恢复 ${result.count} 项数据。\n\n请重新打开游戏以加载存档。`);
+          // 刷新存档面板
+          this._renderSaveSlots('load');
+        } else {
+          alert(`❌ 导入失败：${result.error}`);
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
   }
 
   /* ============================================
