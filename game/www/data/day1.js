@@ -3,7 +3,19 @@
  * v3: 丹·哈蒙八步故事圈
  */
 const DAY1_SCRIPT = {
-  meta: { day: 1, dayTitle: '夏末 —— 爱作为「注意」' },
+  meta: {
+    day: 1,
+    dayTitle: '夏末 —— 爱作为「注意」',
+    variables: {
+      openness: 0,
+      acceptance: 0,
+      interaction_depth: 0,
+      rejection_count: 0,
+      breakdown_occurred: false,
+      remembered_on_qingming: false,
+      unexpected_triggered: false
+    }
+  },
   scenes: {
     day1_opening: {
       lines: [

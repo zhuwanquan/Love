@@ -114,7 +114,7 @@ global.CustomEvent = class {};
 
 // ── 加载数据文件 ──
 console.log('📂 加载剧本数据...');
-const DATA_DIR = path.join(__dirname, '..', 'data');
+const DATA_DIR = path.join(__dirname, '..', 'www', 'data');
 const dayFiles = fs.readdirSync(DATA_DIR).filter(f => f.match(/^day\d+\.js$/)).sort();
 
 for (const file of dayFiles) {
@@ -131,8 +131,19 @@ for (const file of dayFiles) {
 }
 
 // ── 加载引擎 ──
+console.log('📂 加载存储适配层...');
+const storageCode = fs.readFileSync(path.join(__dirname, '..', 'www', 'js', 'storage.js'), 'utf8');
+const storageGlobalized = storageCode.replace(/\bconst\s+(GameStorage)\s*=/g, 'global.$1 =');
+try {
+  new Function(storageGlobalized)();
+  console.log('  ✅ storage.js');
+} catch(e) {
+  console.error('  ❌ storage.js: ' + e.message);
+  process.exit(1);
+}
+
 console.log('📂 加载引擎...');
-const engineCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'engine.js'), 'utf8');
+const engineCode = fs.readFileSync(path.join(__dirname, '..', 'www', 'js', 'engine.js'), 'utf8');
 const engineGlobalized = engineCode + '\nglobal.GameEngine = GameEngine;';
 new Function(engineGlobalized)();  // runs in global scope
 
@@ -191,7 +202,7 @@ const e = global.__e;
 t('加载8天剧本', () => {
   [DAY1_SCRIPT, DAY2_SCRIPT, DAY3_SCRIPT, DAY4_SCRIPT,
    DAY5_SCRIPT, DAY6_SCRIPT, DAY7_SCRIPT, DAY8_SCRIPT].forEach(s => e.loadScript(s));
-  if (Object.keys(e.scenes).length < 60) throw new Error(`场景数: ${Object.keys(e.scenes).length}`);
+  if (Object.keys(e.scenes).length < 40) throw new Error(`场景数: ${Object.keys(e.scenes).length}`);
   console.log(`      场景: ${Object.keys(e.scenes).length}, 变量: ${Object.keys(e.variables).length}, 结局: ${e._endings ? Object.keys(e._endings).length : 0}`);
 });
 

@@ -8,7 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
+const DATA_DIR = path.join(__dirname, '..', 'www', 'data');
 const errors = [];
 const warnings = [];
 
@@ -257,7 +257,7 @@ console.log('  ✅ 过渡场景检查完成');
 
 // ── 测试7: 引擎加载验证 ──
 console.log('\n🔍 测试7: 引擎兼容性');
-const enginePath = path.join(__dirname, '..', 'js', 'engine.js');
+const enginePath = path.join(__dirname, '..', 'www', 'js', 'engine.js');
 try {
   const engineCode = fs.readFileSync(enginePath, 'utf8');
   new Function(engineCode);
@@ -269,7 +269,7 @@ try {
 // ── 测试8: HTML 结构检查 ──
 console.log('\n🔍 测试8: HTML/UI 结构');
 try {
-  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'www', 'index.html'), 'utf8');
   const requiredIds = ['main-menu', 'pause-menu', 'game-ui', 'chat-area', 'message-list',
                        'choices-area', 'header', 'save-panel', 'load-panel', 'settings-panel',
                        'dev-panel', 'guide-overlay', 'ending-panel'];
@@ -286,12 +286,12 @@ try {
 // ── 测试9: PWA 配置 ──
 console.log('\n🔍 测试9: PWA 配置');
 try {
-  const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'manifest.json'), 'utf8'));
+  const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'www', 'manifest.json'), 'utf8'));
   const manifestRequired = ['name', 'short_name', 'start_url', 'display', 'icons'];
   for (const key of manifestRequired) {
     if (!manifest[key]) errors.push(`manifest.json 缺少: ${key}`);
   }
-  const swCode = fs.readFileSync(path.join(__dirname, '..', 'sw.js'), 'utf8');
+  const swCode = fs.readFileSync(path.join(__dirname, '..', 'www', 'sw.js'), 'utf8');
   if (!swCode.includes('CACHE_NAME')) errors.push('sw.js 缺少 CACHE_NAME');
   console.log('  ✅ PWA 配置完整');
 } catch (e) {
@@ -307,7 +307,7 @@ const requiredFiles = [
   'data/day5.js', 'data/day6.js', 'data/day7.js', 'data/day8.js'
 ];
 for (const file of requiredFiles) {
-  const fullPath = path.join(__dirname, '..', file);
+  const fullPath = path.join(__dirname, '..', 'www', file);
   if (!fs.existsSync(fullPath)) {
     errors.push(`缺少文件: ${file}`);
   }
@@ -331,7 +331,7 @@ console.log(`  数据文件: ${dayFiles.length}`);
 // ── 测试12: CSS 关键类检查 ──
 console.log('\n🔍 测试12: CSS 关键类');
 try {
-  const css = fs.readFileSync(path.join(__dirname, '..', 'css', 'style.css'), 'utf8');
+  const css = fs.readFileSync(path.join(__dirname, '..', 'www', 'css', 'style.css'), 'utf8');
   const requiredClasses = ['msg-rc-wrapper', 'rc-avatar', 'typing-indicator', 'guide-content',
                            'msg-rc', 'msg-player', 'msg-narration', 'msg-notification'];
   for (const cls of requiredClasses) {
@@ -365,6 +365,6 @@ if (errors.length === 0 && warnings.length === 0) {
 }
 
 console.log(`\n总计: ${errors.length} 错误, ${warnings.length} 警告`);
-console.log(`${allSceneIds.size} 场景, ${allGotoTargets.size} 跳转引用, ${allVarNames.size} 变量`);
+console.log(`${Object.keys(allScenes).length} 场景, ${allGotoTargets.size} 跳转引用, ${allVarNames.size} 变量`);
 
 process.exit(errors.length > 0 ? 1 : 0);
