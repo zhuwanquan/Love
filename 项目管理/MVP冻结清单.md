@@ -32,7 +32,14 @@ metadata:
 
 ### 角色展示（v2.1新增）
 - [x] 画框展示区 HTML/CSS/JS
-- [ ] AI生成RC-7角色形象（portrait.webp） ← 当前最高优先待办
+- [ ] **AI生成RC-7角色形象（portrait.webp）** ← 🔴 当前最高优先待办
+  - [ ] 平台：海艺AI（haiyi.art）或文心一格（yige.baidu.com）
+  - [ ] Prompt：已就绪（`AI生成角色形象与渲染方案.md` 第三节）
+  - [ ] 跑20-30张 → 选1张（标准：眼神·琥珀色·平稳回看·不热切不回避）
+  - [ ] Photopea裁剪3:4 + 微调虹膜色 + 导出WebP(<150KB)
+  - [ ] 放入 `game/www/assets/portrait/portrait.webp`
+  - [ ] 调试CSS光点位置(top/left)匹配底图眼位
+  - [ ] 切换五状态滤镜 → 微调参数
 
 ### 发布基础
 - [x] GitHub Pages 自动部署

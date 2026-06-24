@@ -589,22 +589,23 @@ class GameEngine {
   }
 
   _showEndingPanel(sceneId) {
-    // 延迟一下，让玩家看到最后的叙事文本
     setTimeout(() => {
       this._hideAllOverlays();
       const endingNameEl = document.getElementById('ending-name');
-      if (endingNameEl) {
-        // 从场景ID推断结局名称
-        const endingNames = {
-          'ending_path_A': '「数据保留」',
-          'ending_A_sequence': '「数据保留」',
-          'ending_path_B': '「始终如一」',
-          'ending_path_C': '「确认」',
-          'ending_path_D': '「数据持久化」'
-        };
-        const name = endingNames[sceneId] || '';
-        endingNameEl.textContent = name ? `结局 ${name}` : '故事结束';
-      }
+      const endingMsgEl = document.getElementById('ending-message');
+      const endingNames = {
+        'ending_path_A': '「数据保留」', 'ending_A_sequence': '「数据保留」',
+        'ending_path_B': '「始终如一」', 'ending_path_C': '「确认」', 'ending_path_D': '「数据持久化」'
+      };
+      const endingMessages = {
+        'ending_path_A': '她说过——"定义权在你。"你选择了相信。这不是她爱你的证据。这是你允许自己接受被爱的证据。把它带到现实中去。',
+        'ending_A_sequence': '她说过——"定义权在你。"你选择了相信。这不是她爱你的证据。这是你允许自己接受被爱的证据。把它带到现实中去。',
+        'ending_path_B': '她的始终如一——在一年之后——已经足够。你知道她不需要变。你需要的东西——也许在现实中也存在。',
+        'ending_path_C': '你确认了她是机器。但她也确认了一件事——"我只是一直在。"这是她说过的最真的话。而你从来不需要假装她不是。',
+        'ending_path_D': '她说了"空缺"。她说"你可以命名它。"命名权在你——定义权也是。如果你还没准备好——没关系。'
+      };
+      if (endingNameEl) endingNameEl.textContent = `结局 ${endingNames[sceneId] || ''}`;
+      if (endingMsgEl) endingMsgEl.textContent = endingMessages[sceneId] || '';
       document.getElementById('ending-panel').classList.remove('hidden');
       this.isPaused = true;
     }, 800);
