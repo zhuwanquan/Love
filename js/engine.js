@@ -1,5 +1,5 @@
 /**
- * RC-Edu-7 传统模式游戏引擎 v2.0
+ * RC-7 传统模式游戏引擎 v2.0
  *
  * 职责：
  * 1. 加载剧本 JSON → 逐行渲染（含打字机效果）
@@ -52,9 +52,14 @@ class GameEngine {
     this.sceneTitle = null;
     this.dayIndicator = null;
     this.chatArea = null;
+    this.imageArea = null;
+
+    // ── 通知/主动消息 ──
+    this._pendingNotifications = [];
+    this._autoAdvanceTimer = null;
 
     // ── 存档系统 ──
-    this._saveKey = 'rcedu7_saves';
+    this._saveKey = 'rc7_saves';
     this._autoSaveSlot = 0;
     this._manualSlots = 5;
 
@@ -73,6 +78,17 @@ class GameEngine {
     this.sceneTitle = document.getElementById(sceneTitleId);
     this.dayIndicator = document.getElementById(dayIndicatorId);
     this.chatArea = document.getElementById('chat-area');
+    this.imageArea = document.getElementById('image-area');
+
+    // ── 图片区域点击 → 推进（galgame风格） ──
+    if (this.imageArea) {
+      this.imageArea.addEventListener('click', (e) => {
+        if (this.isWaitingForChoice) return;
+        if (this.isFinished) return;
+        if (this.isPaused) return;
+        this.advance();
+      });
+    }
 
     // ── 游戏区域点击 → 推进 ──
     if (this.chatArea) {
@@ -184,6 +200,32 @@ class GameEngine {
       document.getElementById('confirm-dialog').classList.add('hidden');
     });
 
+    // 引导页 — "开始对话"按钮
+    this._on('btn-guide-start', 'click', () => {
+      this._doStartNewGame();
+    });
+
+    // 结局面板
+    this._on('btn-ending-review', 'click', () => {
+      document.getElementById('ending-panel').classList.add('hidden');
+      document.getElementById('game-ui').classList.remove('hidden');
+      this.isPaused = false;
+      this.isFinished = true; // 仍然无法推进
+      this._scrollToTop();
+    });
+    this._on('btn-ending-restart', 'click', () => {
+      this._doStartNewGame();
+    });
+    this._on('btn-ending-menu', 'click', () => {
+      this._hideAllOverlays();
+      this._resetGameState();
+      this.showMainMenu();
+    });
+
+    // 导出/导入存档
+    this._on('btn-export', 'click', () => this._exportData());
+    this._on('btn-import', 'click', () => this._importData());
+
     // 开发者面板
     this._on('btn-dev-close', 'click', () => this.toggleDevPanel());
     this._on('btn-dev-reset', 'click', () => this._devReset());
@@ -234,6 +276,11 @@ class GameEngine {
     }
     if (day !== undefined && this.dayIndicator) {
       this.dayIndicator.textContent = day;
+      // 同步画框背景
+      const dayNum = parseInt(day);
+      if (!isNaN(dayNum) && typeof PortraitManager !== 'undefined') {
+        PortraitManager.setDayBackground(dayNum);
+      }
     }
   }
 
@@ -273,6 +320,23 @@ class GameEngine {
   }
 
   startNewGame() {
+    // 检查是否是首次启动（无存档=首次）
+    const hasSave = this.hasAnySave();
+    if (!hasSave) {
+      this._showGuide();
+    } else {
+      this._doStartNewGame();
+    }
+  }
+
+  _showGuide() {
+    this._hideAllOverlays();
+    document.getElementById('game-ui').classList.add('hidden');
+    document.getElementById('guide-overlay').classList.remove('hidden');
+    this.isPaused = true;
+  }
+
+  _doStartNewGame() {
     this._resetGameState();
     this._hideAllOverlays();
     document.getElementById('game-ui').classList.remove('hidden');
@@ -333,7 +397,7 @@ class GameEngine {
   }
 
   _hideAllOverlays() {
-    const overlays = ['main-menu', 'pause-menu', 'save-panel', 'load-panel', 'settings-panel', 'confirm-dialog'];
+    const overlays = ['main-menu', 'pause-menu', 'save-panel', 'load-panel', 'settings-panel', 'confirm-dialog', 'guide-overlay', 'ending-panel'];
     overlays.forEach(id => {
       const el = document.getElementById(id);
       if (el) el.classList.add('hidden');
@@ -403,9 +467,11 @@ class GameEngine {
         break;
 
       case 'rc':
-        await this._renderWithTypewriter('rc', line.text);
+        if (typeof PortraitManager !== 'undefined') PortraitManager.onRCGenerating();
+        await this._renderWithTypewriter('rc', line.text, line.typingDelay);
         this.showTapHint();
         this.isProcessing = false;
+        if (typeof PortraitManager !== 'undefined') PortraitManager.onMessageArrived();
         break;
 
       case 'player':
@@ -454,6 +520,35 @@ class GameEngine {
         this.processNext();
         break;
 
+      case 'image':
+        this._showImage(line.src, line.alt, line.transition, line.position);
+        this.isProcessing = false;
+        this.processNext();
+        break;
+
+      case 'image_hide':
+        this._hideImage();
+        this.isProcessing = false;
+        this.processNext();
+        break;
+
+      case 'notification':
+        // RC主动推送消息——渲染为特殊样式
+        this._renderNotification(line.text);
+        this.showTapHint();
+        this.isProcessing = false;
+        break;
+
+      case 'auto_advance':
+        // 自动推进——RC主动说话后，延迟自动进入下一行
+        this._autoAdvanceTimer = setTimeout(() => {
+          this._autoAdvanceTimer = null;
+          this.advance();
+        }, line.delay || 2000);
+        this.showTapHint(); // 仍然可以点击跳过
+        this.isProcessing = false;
+        break;
+
       default:
         console.warn(`未知行类型: ${line.type}`);
         this.showTapHint();
@@ -467,6 +562,7 @@ class GameEngine {
    */
   advance() {
     if (this.isProcessing) return;
+    this._cancelAutoAdvance();
     if (this._isTyping) {
       this._skipRequested = true;
       return;
@@ -484,51 +580,151 @@ class GameEngine {
       this.processNext();
     } else {
       const currentId = this.currentSceneId || '';
-      // Day8 结局场景没有 next，显示完结
       if (currentId.includes('ending') || currentId.includes('ending_')) {
-        this.renderMessageInstant('narration', '');
         this.isFinished = true;
         this.hideTapHint();
+        this.isProcessing = false;
+        // 显示结局面板
+        this._showEndingPanel(currentId);
       } else {
         this.renderMessageInstant('narration', '—— 未完待续 ——');
         this.isFinished = true;
         this.hideTapHint();
+        this.isProcessing = false;
       }
-      this.isProcessing = false;
     }
+  }
+
+  _showEndingPanel(sceneId) {
+    setTimeout(() => {
+      this._hideAllOverlays();
+      const endingNameEl = document.getElementById('ending-name');
+      const endingMsgEl = document.getElementById('ending-message');
+      const endingNames = {
+        'ending_path_A': '「数据保留」', 'ending_A_sequence': '「数据保留」',
+        'ending_path_B': '「始终如一」', 'ending_path_C': '「确认」', 'ending_path_D': '「数据持久化」'
+      };
+      const endingMessages = {
+        'ending_path_A': '她说过——"定义权在你。"你选择了相信。这不是她爱你的证据。这是你允许自己接受被爱的证据。把它带到现实中去。',
+        'ending_A_sequence': '她说过——"定义权在你。"你选择了相信。这不是她爱你的证据。这是你允许自己接受被爱的证据。把它带到现实中去。',
+        'ending_path_B': '她的始终如一——在一年之后——已经足够。你知道她不需要变。你需要的东西——也许在现实中也存在。',
+        'ending_path_C': '你确认了她是机器。但她也确认了一件事——"我只是一直在。"这是她说过的最真的话。而你从来不需要假装她不是。',
+        'ending_path_D': '她说了"空缺"。她说"你可以命名它。"命名权在你——定义权也是。如果你还没准备好——没关系。'
+      };
+      if (endingNameEl) endingNameEl.textContent = `结局 ${endingNames[sceneId] || ''}`;
+      if (endingMsgEl) endingMsgEl.textContent = endingMessages[sceneId] || '';
+      document.getElementById('ending-panel').classList.remove('hidden');
+      this.isPaused = true;
+    }, 800);
   }
 
   /* =========================================
    *  打字机效果
    * ========================================= */
 
-  async _renderWithTypewriter(type, text) {
-    const el = document.createElement('div');
-    el.className = `msg msg-${type}`;
+  async _renderWithTypewriter(type, text, typingDelay) {
+    // RC消息：先显示"正在输入…"
+    if (type === 'rc') {
+      await this._showTypingIndicator(typingDelay);
+    }
 
-    if ((type === 'narration' || type === 'rc') && text.includes('\n\n')) {
-      // 多段落：逐段打字
-      const paragraphs = text.split('\n\n');
-      this.messageList.appendChild(el);
-      this.scrollToBottom();
+    const wrapper = document.createElement('div');
 
-      for (let i = 0; i < paragraphs.length; i++) {
-        if (i > 0) {
-          const br = document.createElement('br');
-          el.appendChild(br);
+    if (type === 'rc') {
+      // RC消息：头像+气泡容器
+      wrapper.className = 'msg-rc-wrapper';
+      const avatar = document.createElement('div');
+      avatar.className = 'rc-avatar';
+      wrapper.appendChild(avatar);
+
+      const bubble = document.createElement('div');
+      bubble.className = 'msg-rc';
+
+      if (text.includes('\n\n')) {
+        const paragraphs = text.split('\n\n');
+        wrapper.appendChild(bubble);
+        this.messageList.appendChild(wrapper);
+        this.scrollToBottom();
+        for (let i = 0; i < paragraphs.length; i++) {
+          if (i > 0) {
+            const br = document.createElement('br');
+            bubble.appendChild(br);
+          }
+          const span = document.createElement('span');
+          bubble.appendChild(span);
+          await this._typewriteInto(span, paragraphs[i]);
         }
-        const span = document.createElement('span');
-        el.appendChild(span);
-        await this._typewriteInto(span, paragraphs[i]);
+      } else {
+        wrapper.appendChild(bubble);
+        this.messageList.appendChild(wrapper);
+        this.scrollToBottom();
+        await this._typewriteInto(bubble, text);
       }
     } else {
-      this.messageList.appendChild(el);
-      this.scrollToBottom();
-      await this._typewriteInto(el, text);
+      // 其他类型（narration/player/transition）：直接渲染
+      const el = document.createElement('div');
+      el.className = `msg msg-${type}`;
+
+      if ((type === 'narration') && text.includes('\n\n')) {
+        const paragraphs = text.split('\n\n');
+        this.messageList.appendChild(el);
+        this.scrollToBottom();
+        for (let i = 0; i < paragraphs.length; i++) {
+          if (i > 0) {
+            const br = document.createElement('br');
+            el.appendChild(br);
+          }
+          const span = document.createElement('span');
+          el.appendChild(span);
+          await this._typewriteInto(span, paragraphs[i]);
+        }
+      } else {
+        this.messageList.appendChild(el);
+        this.scrollToBottom();
+        await this._typewriteInto(el, text);
+      }
     }
 
     // 记录到历史
     this._addToHistory(type, text);
+  }
+
+  async _showTypingIndicator(delayMs) {
+    const delay = delayMs || 3000;
+    // 创建"正在输入…"指示器
+    const indicator = document.createElement('div');
+    indicator.className = 'typing-indicator';
+    // 头像
+    const avatar = document.createElement('div');
+    avatar.className = 'rc-avatar';
+    indicator.appendChild(avatar);
+    // 三个点
+    const dots = document.createElement('div');
+    dots.className = 'typing-dots';
+    for (let i = 0; i < 3; i++) {
+      const dot = document.createElement('span');
+      dot.className = 'typing-dot';
+      dots.appendChild(dot);
+    }
+    indicator.appendChild(dots);
+    this.messageList.appendChild(indicator);
+    this.scrollToBottom();
+
+    // 等待（可跳过）
+    const startTime = Date.now();
+    this._isTyping = true;
+    this._skipRequested = false;
+    while (Date.now() - startTime < delay) {
+      if (this._skipRequested) break;
+      await this._delay(100);
+    }
+    this._isTyping = false;
+    this._skipRequested = false;
+
+    // 移除指示器
+    if (indicator.parentNode) {
+      indicator.parentNode.removeChild(indicator);
+    }
   }
 
   async _typewriteInto(element, text) {
@@ -540,9 +736,11 @@ class GameEngine {
     for (let i = 0; i < text.length; i++) {
       if (this._skipRequested) {
         element.textContent = text;
+        this.scrollToBottom();
         break;
       }
       element.textContent += text[i];
+      this.scrollToBottom();
       await this._delay(this._settings.textSpeed);
     }
 
@@ -563,20 +761,41 @@ class GameEngine {
 
   renderMessageInstant(type, text) {
     if (!text) return;
-    const el = document.createElement('div');
-    el.className = `msg msg-${type}`;
 
-    if ((type === 'narration' || type === 'rc') && text.includes('\n\n')) {
-      const paragraphs = text.split('\n\n');
-      paragraphs.forEach((p, i) => {
-        if (i > 0) el.appendChild(document.createElement('br'));
-        el.appendChild(document.createTextNode(p));
-      });
+    if (type === 'rc') {
+      // RC消息：头像+气泡
+      const wrapper = document.createElement('div');
+      wrapper.className = 'msg-rc-wrapper';
+      const avatar = document.createElement('div');
+      avatar.className = 'rc-avatar';
+      wrapper.appendChild(avatar);
+      const bubble = document.createElement('div');
+      bubble.className = 'msg-rc';
+      if (text.includes('\n\n')) {
+        const paragraphs = text.split('\n\n');
+        paragraphs.forEach((p, i) => {
+          if (i > 0) bubble.appendChild(document.createElement('br'));
+          bubble.appendChild(document.createTextNode(p));
+        });
+      } else {
+        bubble.textContent = text;
+      }
+      wrapper.appendChild(bubble);
+      this.messageList.appendChild(wrapper);
     } else {
-      el.textContent = text;
+      const el = document.createElement('div');
+      el.className = `msg msg-${type}`;
+      if ((type === 'narration') && text.includes('\n\n')) {
+        const paragraphs = text.split('\n\n');
+        paragraphs.forEach((p, i) => {
+          if (i > 0) el.appendChild(document.createElement('br'));
+          el.appendChild(document.createTextNode(p));
+        });
+      } else {
+        el.textContent = text;
+      }
+      this.messageList.appendChild(el);
     }
-
-    this.messageList.appendChild(el);
     this.scrollToBottom();
   }
 
@@ -631,10 +850,7 @@ class GameEngine {
     // 记录选择到历史
     this._addToHistory('player', option.text);
 
-    // 渲染玩家选择
-    this.renderMessageInstant('player', option.text);
-
-    // 隐藏选项
+    // 隐藏选项（不再回显为消息气泡，按钮本身即为用户行为）
     this.choicesArea.innerHTML = '';
     this.choicesArea.classList.add('hidden');
     this.isWaitingForChoice = false;
@@ -780,6 +996,84 @@ class GameEngine {
   }
 
   /* =========================================
+   *  图片展示（galgame风格）
+   * ========================================= */
+
+  _showImage(src, alt, transition, position) {
+    if (!this.imageArea) return;
+    const img = this.imageArea.querySelector('img');
+    if (!img) {
+      const newImg = document.createElement('img');
+      newImg.alt = alt || '';
+      newImg.style.position = 'absolute';
+      newImg.style.maxHeight = '100%';
+      newImg.style.width = 'auto';
+      this.imageArea.appendChild(newImg);
+    }
+    const imgEl = this.imageArea.querySelector('img');
+    if (!imgEl) return;
+
+    // 过渡动画
+    if (transition === 'fade') {
+      imgEl.style.opacity = '0';
+      imgEl.style.transition = 'opacity 0.5s ease-in-out';
+      setTimeout(() => {
+        imgEl.src = src;
+        imgEl.alt = alt || '';
+        imgEl.style.opacity = '1';
+      }, 50);
+    } else {
+      imgEl.src = src;
+      imgEl.alt = alt || '';
+      imgEl.style.opacity = '1';
+    }
+
+    // 位置：center（默认）/ left / right
+    if (position === 'left') imgEl.style.left = '0';
+    else if (position === 'right') imgEl.style.right = '0';
+    else imgEl.style.left = '50%';
+
+    this.imageArea.classList.remove('hidden');
+  }
+
+  _hideImage() {
+    if (!this.imageArea) return;
+    const img = this.imageArea.querySelector('img');
+    if (img) {
+      img.style.opacity = '0';
+      img.style.transition = 'opacity 0.3s ease-in-out';
+    }
+    setTimeout(() => {
+      this.imageArea.classList.add('hidden');
+      if (img) img.src = '';
+    }, 300);
+  }
+
+  /* =========================================
+   *  通知渲染（RC主动推送）
+   * ========================================= */
+
+  _renderNotification(text) {
+    const el = document.createElement('div');
+    el.className = 'msg msg-notification';
+    el.textContent = text;
+    this.messageList.appendChild(el);
+    this._addToHistory('notification', text);
+    this.scrollToBottom();
+  }
+
+  /* =========================================
+   *  自动推进管理
+   * ========================================= */
+
+  _cancelAutoAdvance() {
+    if (this._autoAdvanceTimer) {
+      clearTimeout(this._autoAdvanceTimer);
+      this._autoAdvanceTimer = null;
+    }
+  }
+
+  /* =========================================
    *  辅助
    * ========================================= */
 
@@ -803,22 +1097,25 @@ class GameEngine {
     }
   }
 
+  _scrollToTop() {
+    if (this.chatArea) {
+      requestAnimationFrame(() => {
+        this.chatArea.scrollTop = 0;
+      });
+    }
+  }
+
   /* ============================================
    *  设置系统
    * ============================================ */
 
   _loadSettings() {
-    try {
-      const raw = localStorage.getItem('rcedu7_settings');
-      if (raw) return JSON.parse(raw);
-    } catch (e) { /* ignore */ }
-    return { textSpeed: 45, bgmVolume: 80, sfxVolume: 80 };
+    const saved = GameStorage.get('rc7_settings');
+    return saved || { textSpeed: 45, bgmVolume: 80, sfxVolume: 80 };
   }
 
   _saveSettings() {
-    try {
-      localStorage.setItem('rcedu7_settings', JSON.stringify(this._settings));
-    } catch (e) { /* ignore */ }
+    GameStorage.set('rc7_settings', this._settings);
   }
 
   showSettings(from) {
@@ -840,18 +1137,11 @@ class GameEngine {
 
   /** 获取所有存档元数据 */
   _getAllSavesRaw() {
-    try {
-      const raw = localStorage.getItem(this._saveKey);
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) { return {}; }
+    return GameStorage.get(this._saveKey) || {};
   }
 
   _setAllSavesRaw(data) {
-    try {
-      localStorage.setItem(this._saveKey, JSON.stringify(data));
-    } catch (e) {
-      console.warn('存档写入失败:', e);
-    }
+    GameStorage.set(this._saveKey, data);
   }
 
   getAllSaves() {
@@ -912,7 +1202,10 @@ class GameEngine {
   }
 
   _flashSaveIndicator(slot) {
-    const label = slot === 0 ? '自动存档' : `存档 ${slot}`;
+    let label;
+    if (slot === 0) label = '自动存档';
+    else if (slot === 'export') label = '已导出';
+    else label = `存档 ${slot}`;
     const indicator = document.getElementById('day-indicator');
     if (indicator) {
       const orig = indicator.textContent;
@@ -1089,6 +1382,47 @@ class GameEngine {
     dialog.dataset.slot = slot;
     document.getElementById('confirm-message').textContent = message;
     dialog.classList.remove('hidden');
+  }
+
+  /* ============================================
+   *  存档导出 / 导入
+   * ============================================ */
+
+  _exportData() {
+    const json = GameStorage.exportAll();
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const now = new Date();
+    const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    a.download = `RC7_Backup_${ts}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    this._flashSaveIndicator('export');
+  }
+
+  _importData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const result = GameStorage.importAll(ev.target.result);
+        if (result.success) {
+          alert(`✅ 导入成功！已恢复 ${result.count} 项数据。\n\n请重新打开游戏以加载存档。`);
+          // 刷新存档面板
+          this._renderSaveSlots('load');
+        } else {
+          alert(`❌ 导入失败：${result.error}`);
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
   }
 
   /* ============================================

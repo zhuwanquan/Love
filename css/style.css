@@ -1,5 +1,5 @@
 /* ============================================
- *  一年·房间 — RC-Edu-7 样式表 v2.0
+ *  一年·房间 — RC-7 样式表 v2.0
  * ============================================ */
 
 /* ── 基础重置 & 暗色主题 ── */
@@ -202,6 +202,25 @@ html, body {
 
 .menu-btn.danger:active {
   background: rgba(139, 92, 92, 0.2);
+}
+
+.menu-divider {
+  height: 1px;
+  background: var(--divider);
+  margin: 4px 0;
+  opacity: 0.5;
+}
+
+.menu-row {
+  display: flex;
+  gap: 8px;
+}
+
+.menu-btn.small {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 13px;
+  border-radius: 8px;
 }
 
 /* ============================================
@@ -436,6 +455,50 @@ input[type="range"]:disabled {
   font-size: 14px;
 }
 
+/* ── 首次引导页 ── */
+.guide-content {
+  text-align: center;
+  padding: 24px 20px;
+  max-width: 340px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-height: 80vh;
+}
+
+.guide-icon {
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.guide-scroll {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  padding: 0 4px;
+  -webkit-overflow-scrolling: touch;
+  max-height: 50vh;
+}
+
+.guide-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.9;
+  text-align: left;
+  letter-spacing: 0.02em;
+}
+
+.guide-text strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.guide-content .menu-btn {
+  flex-shrink: 0;
+  width: 100%;
+}
+
 /* ============================================
  *  游戏 UI
  * ============================================ */
@@ -496,6 +559,162 @@ input[type="range"]:disabled {
   transition: background 0.3s;
 }
 
+/* ── 角色形象展示区（画框） ── */
+#portrait-frame {
+  position: relative;
+  flex-shrink: 0;
+  width: 35%;
+  min-width: 120px;
+  max-width: 200px;
+  aspect-ratio: 3 / 4;
+  margin: 12px auto 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #0d0d0d;
+}
+#portrait-border {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 4;
+}
+.portrait-bg {
+  position: absolute;
+  inset: 0;
+  transition: background 3s ease;
+  z-index: 0;
+}
+.portrait-bg.bg-day1 { background: linear-gradient(180deg, #1a1a1f 0%, #151518 60%, #1a1815 100%); }
+.portrait-bg.bg-day2 { background: linear-gradient(180deg, #1a1c20 0%, #16181e 60%, #1a1c22 100%); }
+.portrait-bg.bg-day3 { background: linear-gradient(180deg, #181a1c 0%, #141618 60%, #18191a 100%); }
+.portrait-bg.bg-day4 { background: linear-gradient(180deg, #111114 0%, #0e0e12 60%, #121114 100%); }
+.portrait-bg.bg-day5 { background: linear-gradient(180deg, #18161a 0%, #151318 60%, #1a1418 100%); }
+.portrait-bg.bg-day6 { background: linear-gradient(180deg, #151a16 0%, #121816 60%, #151a18 100%); }
+.portrait-bg.bg-day7 { background: linear-gradient(180deg, #161a18 0%, #141a16 60%, #161a1a 100%); }
+.portrait-bg.bg-day8 { background: linear-gradient(180deg, #1a1a18 0%, #181812 60%, #1c1a14 100%); }
+
+/* 角色底图（SVG占位→替换为AI生成的portrait.webp） */
+.portrait-base {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-image: url('../assets/portrait/portrait.webp');
+  background-size: cover;
+  background-position: center top;
+  transition: filter 1.5s ease, opacity 2s ease;
+}
+/* 默认CSS人物剪影——有portrait.webp后自动替换 */
+.portrait-base::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    /* 发髻 */
+    radial-gradient(ellipse 40px 44px at 50% 22%, rgba(140,110,80,0.2) 0%, transparent 70%),
+    /* 头部 */
+    radial-gradient(ellipse 34px 40px at 50% 25%, rgba(195,155,115,0.22) 0%, transparent 70%),
+    /* 颈部 */
+    radial-gradient(ellipse 12px 20px at 50% 40%, rgba(195,155,115,0.1) 0%, transparent 70%),
+    /* 肩部 */
+    radial-gradient(ellipse 78px 30px at 50% 48%, rgba(195,155,115,0.13) 0%, transparent 70%),
+    /* 躯干 */
+    radial-gradient(ellipse 56px 110px at 50% 72%, rgba(195,155,115,0.07) 0%, transparent 70%),
+    /* 环境柔光 */
+    radial-gradient(ellipse at 50% 35%, rgba(200,150,100,0.06) 0%, transparent 60%);
+}
+/* 长发流线 */
+.portrait-base::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(175deg, rgba(160,130,100,0.08) 0%, transparent 20%),
+    linear-gradient(185deg, rgba(160,130,100,0.08) 0%, transparent 20%);
+  mask-image: radial-gradient(ellipse 90px 180px at 50% 50%, black 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 90px 180px at 50% 50%, black 0%, transparent 70%);
+}
+
+/* 五个状态 */
+.portrait-state-idle    { filter: brightness(0.88) saturate(0.8) contrast(0.95); opacity: 1; }
+.portrait-state-listening { filter: brightness(0.96) saturate(0.88) contrast(0.93); opacity: 1; }
+.portrait-state-responding { filter: brightness(0.93) saturate(0.85) contrast(0.94); opacity: 1; }
+.portrait-state-caring  { filter: brightness(0.94) saturate(0.92) sepia(0.08) contrast(0.9); opacity: 1; }
+.portrait-state-deep    { filter: brightness(0.78) saturate(0.7) contrast(0.97); opacity: 0.95; }
+
+/* 琥珀色光点 */
+.amber-light {
+  position: absolute;
+  top: 35%; left: 44%;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(200,150,100,0.85) 0%, rgba(180,130,80,0.35) 40%, transparent 70%);
+  box-shadow: 0 0 6px rgba(200,150,100,0.25), 0 0 18px rgba(200,150,100,0.08);
+  z-index: 2;
+  animation: amber-breathe 4.5s ease-in-out infinite;
+  transition: all 0.8s ease;
+}
+@keyframes amber-breathe {
+  0%, 100% { opacity: 0.75; box-shadow: 0 0 6px rgba(200,150,100,0.25), 0 0 18px rgba(200,150,100,0.08); }
+  50%      { opacity: 0.95; box-shadow: 0 0 10px rgba(200,150,100,0.35), 0 0 24px rgba(200,150,100,0.12); }
+}
+.portrait-state-deep .amber-light     { animation-duration: 6s; opacity: 0.5; }
+.portrait-state-caring .amber-light   { background: radial-gradient(circle, rgba(210,145,85,0.9) 0%, rgba(190,120,70,0.4) 40%, transparent 70%); }
+.portrait-state-responding .amber-light { animation: amber-process 2.5s ease-in-out; }
+@keyframes amber-process {
+  0%, 100% { opacity: 0.75; }
+  50%      { opacity: 0.9; }
+}
+.portrait-state-listening .amber-light { opacity: 0.9; }
+
+/* 响应式：移动端 */
+@media (max-width: 480px) {
+  #portrait-frame {
+    width: 28%;
+    min-width: 90px;
+    max-width: 140px;
+  }
+}
+
+/* ── 图片展示区（galgame / 直播风格） ── */
+#image-area {
+  flex-shrink: 0;
+  width: 100%;
+  height: 35vh;
+  max-height: 320px;
+  min-height: 120px;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+  border-bottom: 1px solid var(--divider);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: height 0.4s ease, opacity 0.3s ease;
+}
+
+#image-area.hidden {
+  display: none;
+}
+
+#image-area img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: opacity 0.5s ease-in-out;
+}
+
+#image-area .image-placeholder {
+  color: var(--text-muted);
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  opacity: 0.5;
+}
+
 /* ── 聊天区域 ── */
 #chat-area {
   flex: 1;
@@ -550,14 +769,87 @@ input[type="range"]:disabled {
   50% { opacity: 0; }
 }
 
-/* RC-Edu-7 消息（左侧） */
-.msg-rc {
+/* RC-7 消息容器（头像+气泡） */
+.msg-rc-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 88%;
   align-self: flex-start;
+  animation: fadeIn 0.25s ease-out;
+}
+
+/* RC-7 头像 — 深灰圆形+琥珀光点 */
+.rc-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  border: 1px solid var(--divider);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rc-avatar::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+  opacity: 0.85;
+  box-shadow: 0 0 6px rgba(200, 169, 110, 0.5), 0 0 14px rgba(200, 169, 110, 0.2);
+  animation: amber-breathe 4.5s ease-in-out infinite;
+}
+
+/* RC-7 消息（左侧） */
+.msg-rc {
+  flex: 1;
   background: var(--rc-bubble);
   border: 1px solid var(--rc-border);
   color: #c5d5ce;
+  border-radius: 16px;
+  border-bottom-left-radius: 4px;
+  padding: 10px 14px;
+  font-size: 15px;
+  line-height: 1.65;
+  word-break: break-word;
+  white-space: pre-line;
+}
+
+/* 独立RC消息（无头像时回退） */
+.msg.msg-rc {
+  max-width: 82%;
+  align-self: flex-start;
+}
+
+/* ── "正在输入…" 指示器 ── */
+.typing-indicator {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 0 0 8px 0;
+  animation: fadeIn 0.2s ease-out;
+}
+.typing-indicator .typing-dots {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px;
+  background: var(--rc-bubble);
+  border: 1px solid var(--rc-border);
+  border-radius: 16px;
   border-bottom-left-radius: 4px;
 }
+.typing-indicator .typing-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  animation: typingBounce 1.4s ease-in-out infinite;
+}
+.typing-indicator .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
 /* 玩家消息（右侧） */
 .msg-player {
@@ -594,6 +886,26 @@ input[type="range"]:disabled {
   text-align: center;
   padding: 20px 0;
   letter-spacing: 0.1em;
+}
+
+/* 通知消息（RC主动推送，区别于普通消息） */
+.msg-notification {
+  align-self: center;
+  max-width: 85%;
+  background: rgba(107, 155, 138, 0.08);
+  border: 1px dashed rgba(107, 155, 138, 0.2);
+  border-radius: 12px;
+  color: #9bb8a8;
+  font-size: 13px;
+  text-align: center;
+  padding: 10px 16px;
+  letter-spacing: 0.03em;
+  animation: notificationIn 0.4s ease-out;
+}
+
+@keyframes notificationIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ── 选项区域 ── */

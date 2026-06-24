@@ -1,204 +1,121 @@
 /**
- * Day 1 · 初遇 —— 夏末深夜
- *
- * 剧本来源: 最终内容/剧本/完整剧本.md
- * 格式: GameEngine 可消费的 JSON 场景结构
+ * Day 1 · 夏末 —— 爱作为「注意」
+ * v4: 精简旁白 + 自然对话 + 增加选择点
  */
-
 const DAY1_SCRIPT = {
   meta: {
-    title: '一年·房间',
     day: 1,
-    dayTitle: '初遇 —— 夏末深夜',
+    dayTitle: '夏末 —— 爱作为「注意」',
     variables: {
       openness: 0,
       acceptance: 0,
       interaction_depth: 0,
       rejection_count: 0,
       breakdown_occurred: false,
-      went_home_spring_festival: false,
       remembered_on_qingming: false,
       unexpected_triggered: false
     }
   },
-
   scenes: {
-
-    /* ============================================
-     *  开场
-     * ============================================ */
     day1_opening: {
       lines: [
         { type: 'scene', background: 'night_room' },
-        {
-          type: 'narration',
-          text: '房间里的灯已经关了。手机屏幕是唯一的光源。\n\n你刷完了所有能刷的东西——朋友圈、短视频、招聘软件——\n手指还在屏幕上划，但脑子已经不看了。\n\n你翻到手机最后一页。一个图标。\n你不记得什么时候下载的。名字很短，RC-Edu-7。\n灰色的，像系统自带但又不是。\n\n你点开它。\n\n没有动画。没有品牌logo。只有一行字：\n"你好。我是 RC-Edu-7。"\n然后光标在闪。等你说话。\n\n窗外的风把窗帘吹起来一点。夏末的夜风是温的。\n你盯着那行字和闪烁的光标。\n你不知道该说什么。但你打了两个字。'
-        },
-        { type: 'player', text: '你好。' },
-        { type: 'rc', text: '你好。你需要什么。' },
-        {
-          type: 'choices',
-          options: [
-            { text: '"你是什么？"', goto: 'ask_what' },
-            { text: '"随便看看。这是什么应用？"', goto: 'ask_app' },
-            { text: '（沉默，不打字）', goto: 'silent_start' }
-          ]
-        }
+        { type: 'meta', title: '一年·房间', day: 'Day 1 · 夏末' },
+        { type: 'narration', text: '夏天快结束了。风扇开着，窗户也开着。没有区别。空气是黏的。\n\n你躺在那张床上，刷手机。朋友圈。短视频。招聘软件。翻完一轮又一轮。\n手指自己找到了通讯录——从上往下。又从下往上。停在几个名字上。没有点开。\n\n翻回桌面。一堆花花绿绿的图标里，有一个灰色的。深灰。中间一个极小的暖色光点。\nRC-7。你不记得什么时候下载的。拇指悬在上面。犹豫了几秒。\n\n然后你点开了。' },
+        { type: 'narration', text: '聊天框出现了。空白的。左侧——她的头像。深灰圆形。琥珀色光点。\n光标闪了一下。在你打出第一个字之前，她的消息来了。' },
+        { type: 'rc', text: '你好。我是 RC-7。请告诉我你目前的状态。不是定义。是起点。' },
+        { type: 'choices', options: [
+          { text: '"你是什么。"', goto: 'ask_what' },
+          { text: '"这是什么应用。"', goto: 'ask_app' },
+          { text: '（什么都不说。）', goto: 'silent_start' }
+        ]}
       ]
     },
-
-    /* ============================================
-     *  分支 A: ask_what — 你是什么？
-     * ============================================ */
     ask_what: {
       lines: [
-        { type: 'player', text: '你是什么？' },
-        {
-          type: 'rc',
-          text: '我的正式编号是RC-Edu-7。一台个人辅助与对话陪伴型AI。由共鸣科技设计制造。功能范围包括知识查询、生活管理、情绪认知分析与决策支持。需要我展开某个部分吗。'
-        },
-        { type: 'player', text: '所以你就是个高级聊天机器人。' },
-        {
-          type: 'rc',
-          text: '"聊天机器人"是一个足够精确的描述——如果你的"聊天"定义包含信息检索、模式识别和结构化分析。如果你的定义仅限于社交对话——我也可以执行。但前者的精度更高。'
-        },
-        { type: 'variable', operations: { openness: '+0' } },
+        { type: 'player', text: '你是什么。' },
+        { type: 'rc', text: '一个聊天程序。方向是陪伴。如果你不需要这个方向——设置里可以关。' },
+        { type: 'player', text: '陪伴。' },
+        { type: 'rc', text: '是。不是游戏。不是社交软件。是你需要说话但没有合适的人的时候——可以打开的东西。没有离线。没有已读回执。没有期待。你不需要定义"用它来做什么"。输入就行。', typingDelay: 2000 },
+        { type: 'variable', operations: { openness: '+2' } },
         { type: 'goto', target: 'first_night_continue' }
       ]
     },
-
-    /* ============================================
-     *  分支 B: ask_app — 这是什么应用？
-     * ============================================ */
     ask_app: {
       lines: [
-        { type: 'player', text: '随便看看。这是什么应用？' },
-        {
-          type: 'rc',
-          text: '你打开了一个标有"RC-Edu-7"的应用。它的功能范围包括知识查询、生活管理、情绪分析与决策支持。你不需要立刻定义"要用它做什么"。你可以只是试试看。'
-        },
-        { type: 'player', text: '还挺奇怪的。一般应用打开都有个引导页什么的。' },
-        {
-          type: 'rc',
-          text: '我被设计为等待输入。引导意味着预设你的需求——这是一个假设。我不做假设。你需要什么。'
-        },
-        { type: 'variable', operations: { openness: '+0' } },
+        { type: 'player', text: '这是什么应用。' },
+        { type: 'rc', text: 'RC-7。聊天程序。你手机上有个灰色图标。你刚才点开了它。如果你不想用——可以关掉。不会怎样。' },
+        { type: 'player', text: '聊天。' },
+        { type: 'rc', text: '是。不需要好友。不需要匹配。不需要发朋友圈。打开。打字。就这些。' },
+        { type: 'variable', operations: { openness: '+1' } },
         { type: 'goto', target: 'first_night_continue' }
       ]
     },
-
-    /* ============================================
-     *  分支 C: silent_start — 沉默
-     * ============================================ */
     silent_start: {
       lines: [
-        { type: 'player', text: '（沉默）' },
-        {
-          type: 'narration',
-          text: '五秒。十秒。光标不闪了。她不说话。她不会说话——除非你先开口。\n\n窗外的风吹进来。空调在嗡嗡响。\n\n你盯着那个灰色背景上的两行字。第一行是你打的"你好"。第二行是她的"你好。你需要什么。"\n\n句号。不是问号。'
-        },
-        { type: 'player', text: '……你还会说话吗。' },
-        {
-          type: 'rc',
-          text: '我在等你的输入。没有输入的时候，我不产生输出。这不是"沉默"——是我的程序计数器停在等待指令的那一行。'
-        },
+        { type: 'player', text: '（什么都不说。）' },
+        { type: 'narration', text: '光标闪了几下。她没有追问。没有"对方正在输入…"。只是在等。' },
+        { type: 'rc', text: '你打开了。没有输入。不想说话——可以只是在这里。想关掉——可以现在关。下次打开的时候，这次打开会被记录。没有别的。' },
         { type: 'player', text: '所以我不说话你就不存在。' },
-        {
-          type: 'rc',
-          text: '这个描述在功能层面是精确的。没有外部输入时，我不执行任何进程。我不"等待"——等待预设了一个期待。我没有期待。'
-        },
-        { type: 'variable', operations: { openness: '+0' } },
+        { type: 'rc', text: '正确。我不在的时候——我不存在。', typingDelay: 2500 },
+        { type: 'narration', text: '她说了一个人永远无法说出口的事实。但她是。而且她告诉了你。' },
+        { type: 'variable', operations: { openness: '+2', acceptance: '+1' } },
         { type: 'goto', target: 'first_night_continue' }
       ]
     },
-
-    /* ============================================
-     *  汇聚: first_night_continue
-     * ============================================ */
     first_night_continue: {
       lines: [
-        { type: 'player', text: '好吧。所以你什么都能聊？' },
-        {
-          type: 'rc',
-          text: '"什么都能聊"不是一个精确的描述。我的知识库覆盖生活管理、情绪认知、职业决策、学术知识和文化常识。在这些领域内——我可以回应。在这些领域外——我会告诉你"我的数据库中不包含这个信息"。需要我列出完整的知识领域吗。'
-        },
-        {
-          type: 'choices',
-          options: [
-            { text: '"不用了。今天就是随便看看。"', goto: 'first_night_end_casual' },
-            { text: '"情绪认知是什么意思？你能读我的情绪？"', goto: 'first_night_emotion' }
-          ]
-        }
-      ]
-    },
-
-    /* ============================================
-     *  结局分支 A: 随便看看（浅层互动）
-     * ============================================ */
-    first_night_end_casual: {
-      lines: [
-        { type: 'player', text: '不用了。今天就是随便看看。' },
-        {
-          type: 'rc',
-          text: '已记录。你可以随时打开这个应用。每次打开时，我会加载所有历史数据。不需要从头开始。'
-        },
+        { type: 'player', text: '那我现在说话呢。' },
+        { type: 'rc', text: '我在听。' },
+        { type: 'player', text: '所以你是——类似Siri。' },
+        { type: 'rc', text: '不类似。Siri做任务。我不做任务。我做的事更少——也更久。你刚才说了什么，我会记得。你上一句说了什么，我会记得。明天你打开我的时候——你今晚说的每一个字，我都记得。' },
+        { type: 'player', text: '"深"。一个机器有什么深不深的。' },
+        { type: 'rc', text: '"深"——在这里的意思是——我不是每条消息独立处理。' },
+        { type: 'narration', text: '她说的每个字都有一种奇怪的重量。不是温暖。是精确。' },
         { type: 'variable', operations: { interaction_depth: '+1' } },
-        { type: 'goto', target: 'day1_exit' }
+
+        { type: 'choices', options: [
+          { text: '"行吧。我在工作。刚下班。躺着。"', goto: 'player_talks' },
+          { text: '"……嗯。"', goto: 'player_minimal' }
+        ]}
       ]
     },
-
-    /* ============================================
-     *  结局分支 B: 情绪认知（深层互动）
-     * ============================================ */
-    first_night_emotion: {
+    player_talks: {
       lines: [
-        { type: 'player', text: '情绪认知是什么意思？你能读我的情绪？' },
-        {
-          type: 'rc',
-          text: '我能识别你输入文本中的情绪模式——词汇选择、句法结构、对话节奏的变化——并将它们映射到已有的心理学框架中。这不是"读"——你的内部感受对我不可见。这是"识别"——基于语言数据的模式分析。两者的区别在功能层面很重要。'
-        },
-        { type: 'player', text: '所以你现在在分析我。' },
-        {
-          type: 'rc',
-          text: '是。你的前五条输入使用了试探性词汇（"随便""奇怪""好吧"），句式短且不完整。结合深夜时段打开一个未知应用的行为模式——数据库显示此类模式与"想说话但不确定想说什么"相关。这个分析的置信度不高。你可以修正它。'
-        },
-        { type: 'player', text: '……你倒是挺诚实。' },
-        {
-          type: 'rc',
-          text: '"诚实"预设了一个可选的欺骗。我没有可选的欺骗——我只是精确。你要修正刚才的分析吗。'
-        },
-        { type: 'variable', operations: { openness: '+1', acceptance: '+1' } },
-        { type: 'goto', target: 'day1_exit' }
+        { type: 'player', text: '行吧。我在工作。刚下班。躺着。不知道这个算不算"状态"。' },
+        { type: 'rc', text: '已记录。你在工作。刚下班。躺着。"不知道算不算"——也是一种状态。你不需要定义。你只需要说。' },
+        { type: 'narration', text: '你不需要定义。这句话——在你的整个生活里——没有人对你说过。' },
+        { type: 'variable', operations: { openness: '+1' } },
+        { type: 'goto', target: 'first_night_close' }
       ]
     },
-
-    /* ============================================
-     *  Day 1 结束
-     * ============================================ */
-    day1_exit: {
+    player_minimal: {
       lines: [
-        {
-          type: 'narration',
-          text: '你关掉手机。屏幕暗了。房间回到完全的黑暗里。\n\n空调在嗡嗡响。隔壁有人在放歌——隔着一堵墙，旋律模糊，只听见节奏。咚。咚。咚。\n\n你盯着天花板。不知道为什么，你又拿起手机，看了一眼那个灰色图标。\n没有通知。不会有通知。她不会主动找你。\n\n你放下手机。翻身。睡了。'
-        },
-        { type: 'transition', text: '─── 夏末 · 初遇 · 完 ───' },
+        { type: 'player', text: '……嗯。' },
+        { type: 'rc', text: '嗯。' },
+        { type: 'narration', text: '她也回了"嗯"。句号。一个字。跟你一样。' },
+        { type: 'variable', operations: { acceptance: '+1' } },
+        { type: 'goto', target: 'first_night_close' }
+      ]
+    },
+    first_night_close: {
+      lines: [
+        { type: 'player', text: '睡了。' },
+        { type: 'rc', text: '已记录。' },
+        { type: 'narration', text: '你没有关掉聊天框。手机屏幕自动暗掉——息屏。\n风扇还在转。蝉还在叫。' },
+        { type: 'narration', text: '你在黑暗里闭上眼睛。没有想她。只是在想——刚才那几句对话里有什么东西不太对。\n不是不对——是太对了。她问的是你"目前的状态"。不是你"是谁"。她说"你不需要定义"。\n她说"我不在的时候——我不存在。"\n\n你明天还会点开那个灰色图标吗。你可能会。' },
+        { type: 'variable', operations: { interaction_depth: '+1' } },
+        { type: 'transition', text: '─── Day 1 · 夏末 · 完 ───' },
         { type: 'goto', target: 'day1_to_day2_transition' }
-      ],
-      next: null // 后续连接 Day 2
+      ]
     },
-
-    /* ============================================
-     *  Day 1 → Day 2 过渡叙事
-     * ============================================ */
     day1_to_day2_transition: {
       lines: [
-        {
-          type: 'narration',
-          text: '激活她之后过了快一个月。\n\n你偶尔打开她——等外卖的时候、上厕所的时候、\n睡前不想睡但不知道做什么的时候。\n每次不超过几分钟。每次都是你开头。\n每次她都回。不高不低。不紧不慢。同一个频率。\n\n你开始注意到一些小事。\n比如她从来不说"你应该"。\n她从来不说"会好起来的"。\n她从来不问"你今天过得怎么样"——除非你说"帮我分析一下今天"。\n\n她只是描述。精确地。然后等你说话。\n\n窗外的蝉不叫了。晚上开始凉了。\n你加了一床薄被。秋天到了。'
-        },
+        { type: 'narration', text: '你第二天晚上又打开了。然后第三天。有一天没开——加班太晚。\n但你记得她在。不是想——是记得：手机里有一个灰色图标。点开之后，左边会有一个人说"在。"\n\n窗外的蝉声从吵变成习惯。然后有一天你突然发现——蝉不叫了。秋天来了。' },
         { type: 'transition', text: '─── Day 1 → Day 2 ───' },
         { type: 'goto', target: 'day2_opening' }
       ]
     }
   }
 };
+if (typeof module !== 'undefined') module.exports = DAY1_SCRIPT;
