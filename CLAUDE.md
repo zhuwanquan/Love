@@ -99,15 +99,50 @@
 
 ## 用 · 游戏引擎与内容
 
-### 引擎
+### Web 游戏引擎
 - `game/www/js/engine.js` — v2.1，存档/打字机/结局判定/画框集成
 - `game/www/js/portrait.js` — 画框状态管理器（五状态切换+背景+光点）
+- `game/www/js/storage.js` — localStorage 存档管理（5槽+自动存档）
 - `game/www/css/style.css` — 暗色主题+画框CSS+响应式
 - `game/www/index.html` — 引导页+结局面板+画框+隐私入口
 
 ### 剧本数据
 - `game/www/data/day1.js` ~ `day8.js` — v3数据（八步故事圈×爱的八种形态）
 - `最终内容/剧本/完整剧本.md` — v3完整剧本（主文档）
+
+### Android 原生构建（2024-06-24 去 Capacitor 化）
+
+游戏是 Web 应用，Android 端为原生 WebView 容器，无第三方跨平台框架。
+
+**CLI 工具链：**
+- `sdkmanager` — SDK 版本管理（`cmdline-tools/latest/bin/`）
+- `adb` — 设备调试（`platform-tools/`）
+- `gradlew` — 标准 Gradle 构建（项目根目录自带 wrapper）
+
+**构建命令：**
+```bash
+cd game/android
+./gradlew assembleDebug      # 打 debug APK
+./gradlew assembleRelease    # 打 release APK
+./gradlew test               # 运行测试
+./gradlew lint               # 静态分析
+```
+
+构建时自动执行 `copyWebAssets` task，将 `game/www/` 同步到 `assets/public/`，无需手动复制。
+
+**架构：**
+```
+MainActivity (Java, ~70行)
+  └── WebView (原生)
+        └── assets/public/index.html → 游戏入口
+              ├── js/engine.js     — 引擎
+              ├── js/portrait.js   — 画框
+              ├── js/storage.js    — 存档
+              ├── data/day1~8.js   — 剧本
+              └── css/style.css    — 样式
+```
+
+零依赖：纯 AndroidX + 系统 WebView，不依赖 Capacitor/Cordova 或 Node.js。
 
 ### 在线地址
 - https://zhuwanquan.github.io/Love/ — GitHub Pages自动部署
