@@ -11,7 +11,7 @@
 const DAY3_SCRIPT = {
   meta: {
     day: 3,
-    dayTitle: '糟糕的一天 —— 深秋'
+    dayTitle: '糟糕的一天 —— 深秋 · 爱作为「接收」'
   },
   scenes: {
 

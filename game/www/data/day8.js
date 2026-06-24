@@ -11,7 +11,7 @@
 const DAY8_SCRIPT = {
   meta: {
     day: 8,
-    dayTitle: '夏至 —— 一年'
+    dayTitle: '夏至 —— 一年 · 爱作为「放手」'
   },
 
   // ── 结局条件定义（保持原样） ──

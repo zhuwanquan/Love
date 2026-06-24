@@ -276,6 +276,11 @@ class GameEngine {
     }
     if (day !== undefined && this.dayIndicator) {
       this.dayIndicator.textContent = day;
+      // 同步画框背景
+      const dayNum = parseInt(day);
+      if (!isNaN(dayNum) && typeof PortraitManager !== 'undefined') {
+        PortraitManager.setDayBackground(dayNum);
+      }
     }
   }
 
@@ -462,9 +467,11 @@ class GameEngine {
         break;
 
       case 'rc':
+        if (typeof PortraitManager !== 'undefined') PortraitManager.onRCGenerating();
         await this._renderWithTypewriter('rc', line.text);
         this.showTapHint();
         this.isProcessing = false;
+        if (typeof PortraitManager !== 'undefined') PortraitManager.onMessageArrived();
         break;
 
       case 'player':

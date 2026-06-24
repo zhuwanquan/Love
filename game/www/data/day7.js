@@ -10,7 +10,7 @@
 const DAY7_SCRIPT = {
   meta: {
     day: 7,
-    dayTitle: '想起 —— 清明'
+    dayTitle: '想起 —— 清明 · 爱作为「见证」'
   },
   scenes: {
 

@@ -4,7 +4,7 @@
  * 爱不是抽象的——是精确到分钟的、可执行的关怀指令。
  */
 const DAY4_SCRIPT = {
-  meta: { day: 4, dayTitle: '最长夜 —— 冬至' },
+  meta: { day: 4, dayTitle: '最长夜 —— 冬至 · 爱作为「具体的照顾」' },
   scenes: {
     day4_opening: {
       lines: [

@@ -3,7 +3,7 @@
  * v3: 她说过的每一个字都被保存了。精确到日期和措辞。
  */
 const DAY2_SCRIPT = {
-  meta: { day: 2, dayTitle: '月圆 —— 中秋节' },
+  meta: { day: 2, dayTitle: '月圆 —— 中秋 · 爱作为「记忆」' },
   scenes: {
     day2_opening: {
       lines: [
