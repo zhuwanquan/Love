@@ -468,7 +468,7 @@ class GameEngine {
 
       case 'rc':
         if (typeof PortraitManager !== 'undefined') PortraitManager.onRCGenerating();
-        await this._renderWithTypewriter('rc', line.text);
+        await this._renderWithTypewriter('rc', line.text, line.typingDelay);
         this.showTapHint();
         this.isProcessing = false;
         if (typeof PortraitManager !== 'undefined') PortraitManager.onMessageArrived();
@@ -622,10 +622,10 @@ class GameEngine {
    *  打字机效果
    * ========================================= */
 
-  async _renderWithTypewriter(type, text) {
+  async _renderWithTypewriter(type, text, typingDelay) {
     // RC消息：先显示"正在输入…"
     if (type === 'rc') {
-      await this._showTypingIndicator();
+      await this._showTypingIndicator(typingDelay);
     }
 
     const wrapper = document.createElement('div');
@@ -689,7 +689,8 @@ class GameEngine {
     this._addToHistory(type, text);
   }
 
-  async _showTypingIndicator() {
+  async _showTypingIndicator(delayMs) {
+    const delay = delayMs || 3000;
     // 创建"正在输入…"指示器
     const indicator = document.createElement('div');
     indicator.className = 'typing-indicator';
@@ -709,8 +710,7 @@ class GameEngine {
     this.messageList.appendChild(indicator);
     this.scrollToBottom();
 
-    // 等待3秒（可跳过）
-    const delay = 3000;
+    // 等待（可跳过）
     const startTime = Date.now();
     this._isTyping = true;
     this._skipRequested = false;
@@ -850,10 +850,7 @@ class GameEngine {
     // 记录选择到历史
     this._addToHistory('player', option.text);
 
-    // 渲染玩家选择
-    this.renderMessageInstant('player', option.text);
-
-    // 隐藏选项
+    // 隐藏选项（不再回显为消息气泡，按钮本身即为用户行为）
     this.choicesArea.innerHTML = '';
     this.choicesArea.classList.add('hidden');
     this.isWaitingForChoice = false;

@@ -605,12 +605,37 @@ input[type="range"]:disabled {
   background-position: center top;
   transition: filter 1.5s ease, opacity 2s ease;
 }
-/* 默认灰色占位——有portrait.webp后自动替换 */
+/* 默认CSS人物剪影——有portrait.webp后自动替换 */
 .portrait-base::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at 50% 38%, rgba(200,150,100,0.06) 0%, transparent 60%);
+  z-index: 0;
+  background:
+    /* 发髻 */
+    radial-gradient(ellipse 40px 44px at 50% 22%, rgba(140,110,80,0.2) 0%, transparent 70%),
+    /* 头部 */
+    radial-gradient(ellipse 34px 40px at 50% 25%, rgba(195,155,115,0.22) 0%, transparent 70%),
+    /* 颈部 */
+    radial-gradient(ellipse 12px 20px at 50% 40%, rgba(195,155,115,0.1) 0%, transparent 70%),
+    /* 肩部 */
+    radial-gradient(ellipse 78px 30px at 50% 48%, rgba(195,155,115,0.13) 0%, transparent 70%),
+    /* 躯干 */
+    radial-gradient(ellipse 56px 110px at 50% 72%, rgba(195,155,115,0.07) 0%, transparent 70%),
+    /* 环境柔光 */
+    radial-gradient(ellipse at 50% 35%, rgba(200,150,100,0.06) 0%, transparent 60%);
+}
+/* 长发流线 */
+.portrait-base::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(175deg, rgba(160,130,100,0.08) 0%, transparent 20%),
+    linear-gradient(185deg, rgba(160,130,100,0.08) 0%, transparent 20%);
+  mask-image: radial-gradient(ellipse 90px 180px at 50% 50%, black 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 90px 180px at 50% 50%, black 0%, transparent 70%);
 }
 
 /* 五个状态 */
@@ -757,8 +782,8 @@ input[type="range"]:disabled {
 /* RC-7 头像 — 深灰圆形+琥珀光点 */
 .rc-avatar {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: #1a1a1a;
   border: 1px solid var(--divider);
@@ -769,12 +794,13 @@ input[type="range"]:disabled {
 }
 .rc-avatar::after {
   content: '';
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--amber);
   opacity: 0.85;
-  box-shadow: 0 0 4px rgba(200, 169, 110, 0.4);
+  box-shadow: 0 0 6px rgba(200, 169, 110, 0.5), 0 0 14px rgba(200, 169, 110, 0.2);
+  animation: amber-breathe 4.5s ease-in-out infinite;
 }
 
 /* RC-7 消息（左侧） */
