@@ -559,6 +559,101 @@ input[type="range"]:disabled {
   transition: background 0.3s;
 }
 
+/* ── 角色形象展示区（画框） ── */
+#portrait-frame {
+  position: relative;
+  flex-shrink: 0;
+  width: 35%;
+  min-width: 120px;
+  max-width: 200px;
+  aspect-ratio: 3 / 4;
+  margin: 12px auto 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #0d0d0d;
+}
+#portrait-border {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 4;
+}
+.portrait-bg {
+  position: absolute;
+  inset: 0;
+  transition: background 3s ease;
+  z-index: 0;
+}
+.portrait-bg.bg-day1 { background: linear-gradient(180deg, #1a1a1f 0%, #151518 60%, #1a1815 100%); }
+.portrait-bg.bg-day2 { background: linear-gradient(180deg, #1a1c20 0%, #16181e 60%, #1a1c22 100%); }
+.portrait-bg.bg-day3 { background: linear-gradient(180deg, #181a1c 0%, #141618 60%, #18191a 100%); }
+.portrait-bg.bg-day4 { background: linear-gradient(180deg, #111114 0%, #0e0e12 60%, #121114 100%); }
+.portrait-bg.bg-day5 { background: linear-gradient(180deg, #18161a 0%, #151318 60%, #1a1418 100%); }
+.portrait-bg.bg-day6 { background: linear-gradient(180deg, #151a16 0%, #121816 60%, #151a18 100%); }
+.portrait-bg.bg-day7 { background: linear-gradient(180deg, #161a18 0%, #141a16 60%, #161a1a 100%); }
+.portrait-bg.bg-day8 { background: linear-gradient(180deg, #1a1a18 0%, #181812 60%, #1c1a14 100%); }
+
+/* 角色底图（SVG占位→替换为AI生成的portrait.webp） */
+.portrait-base {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-image: url('../assets/portrait/portrait.webp');
+  background-size: cover;
+  background-position: center top;
+  transition: filter 1.5s ease, opacity 2s ease;
+}
+/* 默认灰色占位——有portrait.webp后自动替换 */
+.portrait-base::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 38%, rgba(200,150,100,0.06) 0%, transparent 60%);
+}
+
+/* 五个状态 */
+.portrait-state-idle    { filter: brightness(0.88) saturate(0.8) contrast(0.95); opacity: 1; }
+.portrait-state-listening { filter: brightness(0.96) saturate(0.88) contrast(0.93); opacity: 1; }
+.portrait-state-responding { filter: brightness(0.93) saturate(0.85) contrast(0.94); opacity: 1; }
+.portrait-state-caring  { filter: brightness(0.94) saturate(0.92) sepia(0.08) contrast(0.9); opacity: 1; }
+.portrait-state-deep    { filter: brightness(0.78) saturate(0.7) contrast(0.97); opacity: 0.95; }
+
+/* 琥珀色光点 */
+.amber-light {
+  position: absolute;
+  top: 35%; left: 44%;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(200,150,100,0.85) 0%, rgba(180,130,80,0.35) 40%, transparent 70%);
+  box-shadow: 0 0 6px rgba(200,150,100,0.25), 0 0 18px rgba(200,150,100,0.08);
+  z-index: 2;
+  animation: amber-breathe 4.5s ease-in-out infinite;
+  transition: all 0.8s ease;
+}
+@keyframes amber-breathe {
+  0%, 100% { opacity: 0.75; box-shadow: 0 0 6px rgba(200,150,100,0.25), 0 0 18px rgba(200,150,100,0.08); }
+  50%      { opacity: 0.95; box-shadow: 0 0 10px rgba(200,150,100,0.35), 0 0 24px rgba(200,150,100,0.12); }
+}
+.portrait-state-deep .amber-light     { animation-duration: 6s; opacity: 0.5; }
+.portrait-state-caring .amber-light   { background: radial-gradient(circle, rgba(210,145,85,0.9) 0%, rgba(190,120,70,0.4) 40%, transparent 70%); }
+.portrait-state-responding .amber-light { animation: amber-process 2.5s ease-in-out; }
+@keyframes amber-process {
+  0%, 100% { opacity: 0.75; }
+  50%      { opacity: 0.9; }
+}
+.portrait-state-listening .amber-light { opacity: 0.9; }
+
+/* 响应式：移动端 */
+@media (max-width: 480px) {
+  #portrait-frame {
+    width: 28%;
+    min-width: 90px;
+    max-width: 140px;
+  }
+}
+
 /* ── 图片展示区（galgame / 直播风格） ── */
 #image-area {
   flex-shrink: 0;

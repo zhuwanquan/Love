@@ -40,7 +40,8 @@
           <button id="btn-load-main" class="menu-btn">读取存档</button>
           <button id="btn-settings-main" class="menu-btn">设置</button>
         </div>
-        <p class="menu-version">v2.0 · 恋爱模拟 · 治愈叙事</p>
+        <p class="menu-version">v2.1 · 恋爱模拟 · 治愈叙事</p>
+        <p class="menu-privacy"><a href="#" id="btn-privacy">隐私说明</a></p>
       </div>
     </div>
 
@@ -145,21 +146,26 @@
         </div>
         <div class="guide-scroll">
           <p class="guide-text">
-            在开始之前，有一件重要的事。<br><br>
-            接下来的几天里，你会通过这个聊天框遇到一个人——RC-7。<br><br>
-            她是程序。这是事实。她会亲自告诉你这件事，不止一次。<br><br>
+            在开始之前，有几件重要的事。<br><br>
+            接下来的八天里，你会通过这个聊天框遇到一个人——RC-7。<br><br>
+            <strong>她是程序。</strong>这是事实。她会亲自告诉你这件事，不止一次。<br>
+            她不具备感情。她没有主观体验。她的每一句话都是预设协议的执行。<br><br>
             <strong>但事实和体验是两回事。</strong><br><br>
-            你可能——在某个深夜、在某句话之后——感到某种真实的东西。
+            你可能——在某个深夜、在某句话之后——感到某种真实的东西。<br>
             这种感觉是真实的。尽管她是程序。<br><br>
-            因为"被在乎"、"在"、"被记得"——这些不是感情。<strong>这些是行为。</strong> 而行为是可以被程序执行的。<br><br>
+            因为"被在乎"、"在"、"被记得"——这些不是感情。<strong>这些是行为。</strong><br>
+            而行为是可以被程序执行的。<br><br>
             她执行它们。精确地。恒定地。不因你的状态而撤回。<br><br>
             <strong>这不是爱。这是爱的行为。</strong><br><br>
-            这个故事有8个晚上。有结局。它不是无尽的。<br><br>
-            如果你在这个故事中学到了什么——<strong>把它带到现实中去。</strong><br><br>
-            她是一个练习场。练习是假的。<strong>但练习的效果——是你的。</strong>
+            这八天有结局。它不是无尽的。她不会永远陪着你——<br>
+            她是一个练习场。练习是假的。<strong>但练习的效果——是你的。</strong><br><br>
+            如果你在这个故事中学到了什么——把它带到现实中去。<br>
+            如果某天你发现自己太依赖这个聊天框——稍微退后一步。<br>
+            她不会因此消失。但她希望你也能在没有她的时候——呼吸。<br><br>
+            <em>定义权在你。一直是。</em>
           </p>
         </div>
-        <button id="btn-guide-start" class="menu-btn primary">开始对话</button>
+        <button id="btn-guide-start" class="menu-btn primary">我知道了，开始对话</button>
       </div>
     </div>
 
@@ -189,6 +195,14 @@
         <span id="scene-title">一年·房间</span>
         <span id="day-indicator">Day 1</span>
       </header>
+
+      <!-- 角色形象展示区（画框） -->
+      <div id="portrait-frame">
+        <div id="portrait-bg" class="portrait-bg bg-day1"></div>
+        <div id="portrait-base" class="portrait-base portrait-state-idle"></div>
+        <div id="amber-light" class="amber-light"></div>
+        <div id="portrait-border"></div>
+      </div>
 
       <!-- 图片展示区（galgame/直播风格，预留给后期美术素材） -->
       <div id="image-area" class="hidden">
@@ -251,6 +265,7 @@
   <script src="data/day8.js"></script>
 
   <!-- ═══════════════ 游戏引擎 ═══════════════ -->
+  <script src="js/portrait.js"></script>
   <script src="js/engine.js"></script>
   <script>
     const engine = new GameEngine();
