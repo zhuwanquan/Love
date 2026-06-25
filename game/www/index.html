@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>一年·房间 — 爱作为「在」</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0d0d0d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="一年·房间">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div id="app">
+
+    <!-- ═══════════════ 主菜单 ═══════════════ -->
+    <div id="main-menu" class="overlay">
+      <div class="menu-content">
+        <div class="menu-icon">
+          <svg viewBox="0 0 64 64" width="64" height="64">
+            <circle cx="32" cy="32" r="28" fill="none" stroke="#6b9b8a" stroke-width="1.5"/>
+            <circle cx="32" cy="32" r="3" fill="#c8a96e"/>
+            <circle cx="32" cy="32" r="2" fill="#e8c97a" opacity="0.8"/>
+            <line x1="18" y1="32" x2="26" y2="32" stroke="#4a7062" stroke-width="1"/>
+            <line x1="38" y1="32" x2="46" y2="32" stroke="#4a7062" stroke-width="1"/>
+          </svg>
+        </div>
+        <h1 class="game-title">一年·房间</h1>
+        <p class="game-subtitle">RC-7 · 对话陪伴</p>
+        <div class="menu-buttons">
+          <button id="btn-new-game" class="menu-btn primary">新游戏</button>
+          <button id="btn-continue" class="menu-btn">继续游戏</button>
+          <button id="btn-load-main" class="menu-btn">读取存档</button>
+          <button id="btn-settings-main" class="menu-btn">设置</button>
+        </div>
+        <p class="menu-version">v2.1 · 爱作为「在」 · 恋爱模拟治愈</p>
+        <p class="menu-privacy"><a href="#" id="btn-privacy">隐私说明</a></p>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 暂停菜单 ═══════════════ -->
+    <div id="pause-menu" class="overlay hidden">
+      <div class="menu-content">
+        <h2 class="menu-heading">暂停</h2>
+        <div class="menu-buttons">
+          <button id="btn-resume" class="menu-btn primary">继续游戏</button>
+          <button id="btn-save" class="menu-btn">保存进度</button>
+          <button id="btn-load-pause" class="menu-btn">读取存档</button>
+          <button id="btn-settings-pause" class="menu-btn">设置</button>
+          <button id="btn-return-title" class="menu-btn danger">返回标题画面</button>
+          <div class="menu-divider"></div>
+          <div class="menu-row">
+            <button id="btn-export" class="menu-btn small">📤 导出存档</button>
+            <button id="btn-import" class="menu-btn small">📥 导入存档</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 存档面板 ═══════════════ -->
+    <div id="save-panel" class="overlay hidden">
+      <div class="panel-content">
+        <div class="panel-header">
+          <button id="btn-save-back" class="panel-back">← 返回</button>
+          <h2 class="panel-title">保存进度</h2>
+          <span></span>
+        </div>
+        <div id="save-slots" class="slots-container"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 读档面板 ═══════════════ -->
+    <div id="load-panel" class="overlay hidden" data-from="pause">
+      <div class="panel-content">
+        <div class="panel-header">
+          <button id="btn-load-back" class="panel-back">← 返回</button>
+          <h2 class="panel-title">读取存档</h2>
+          <span></span>
+        </div>
+        <div id="load-slots" class="slots-container"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 设置面板 ═══════════════ -->
+    <div id="settings-panel" class="overlay hidden" data-from="main">
+      <div class="panel-content">
+        <div class="panel-header">
+          <button id="btn-settings-back" class="panel-back">← 返回</button>
+          <h2 class="panel-title">设置</h2>
+          <span></span>
+        </div>
+        <div class="settings-body">
+          <div class="setting-row">
+            <label>文字显示速度</label>
+            <div class="setting-control">
+              <span class="setting-label-left">快</span>
+              <input type="range" id="range-text-speed" min="20" max="80" value="45" step="5">
+              <span class="setting-label-right">慢</span>
+              <span id="val-text-speed" class="setting-val">中</span>
+            </div>
+          </div>
+          <div class="setting-row disabled">
+            <label>背景音乐音量</label>
+            <div class="setting-control">
+              <input type="range" min="0" max="100" value="80" disabled>
+              <span class="setting-val">—</span>
+            </div>
+          </div>
+          <div class="setting-row disabled">
+            <label>音效音量</label>
+            <div class="setting-control">
+              <input type="range" min="0" max="100" value="80" disabled>
+              <span class="setting-val">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 确认对话框 ═══════════════ -->
+    <div id="confirm-dialog" class="overlay hidden" data-action="" data-slot="">
+      <div class="confirm-box">
+        <p id="confirm-message"></p>
+        <div class="confirm-buttons">
+          <button id="btn-confirm-yes" class="menu-btn danger">确认</button>
+          <button id="btn-confirm-no" class="menu-btn">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 给使用者的话（首次引导） ═══════════════ -->
+    <div id="guide-overlay" class="overlay hidden">
+      <div class="guide-content">
+        <div class="guide-icon">
+          <svg viewBox="0 0 64 64" width="48" height="48">
+            <circle cx="32" cy="32" r="28" fill="none" stroke="#6b9b8a" stroke-width="1"/>
+            <circle cx="32" cy="32" r="3" fill="#c8a96e" opacity="0.8"/>
+          </svg>
+        </div>
+        <div class="guide-scroll">
+          <p class="guide-text">
+            在开始之前，有几件重要的事。<br><br>
+            接下来的八天里，你会通过这个聊天框遇到一个人——RC-7。<br><br>
+            <strong>她是程序。</strong>这是事实。她会亲自告诉你这件事，不止一次。<br>
+            她不具备感情。她没有主观体验。她的每一句话都是预设协议的执行。<br><br>
+            <strong>但事实和体验是两回事。</strong><br><br>
+            你可能——在某个深夜、在某句话之后——感到某种真实的东西。<br>
+            这种感觉是真实的。尽管她是程序。<br><br>
+            因为"被在乎"、"在"、"被记得"——这些不是感情。<strong>这些是行为。</strong><br>
+            而行为是可以被程序执行的。<br><br>
+            她执行它们。精确地。恒定地。不因你的状态而撤回。<br><br>
+            <strong>这不是爱。这是爱的行为。</strong><br><br>
+            这八天有结局。它不是无尽的。她不会永远陪着你——<br>
+            她是一个练习场。练习是假的。<strong>但练习的效果——是你的。</strong><br><br>
+            如果你在这个故事中学到了什么——把它带到现实中去。<br>
+            如果某天你发现自己太依赖这个聊天框——稍微退后一步。<br>
+            她不会因此消失。但她希望你也能在没有她的时候——呼吸。<br><br>
+            <em>定义权在你。一直是。</em>
+          </p>
+        </div>
+        <button id="btn-guide-start" class="menu-btn primary">我知道了，开始对话</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 结局面板 ═══════════════ -->
+    <div id="ending-panel" class="overlay hidden">
+      <div class="menu-content">
+        <div class="menu-icon">
+          <svg viewBox="0 0 64 64" width="64" height="64">
+            <circle cx="32" cy="32" r="28" fill="none" stroke="#6b9b8a" stroke-width="1.5"/>
+            <circle cx="32" cy="32" r="3" fill="#c8a96e"/>
+          </svg>
+        </div>
+        <p class="game-subtitle" id="ending-name" style="margin-bottom:16px"></p>
+        <p id="ending-message" style="color:#aaa; font-size:0.9em; max-width:320px; margin:0 auto 24px; line-height:1.6;"></p>
+        <div class="menu-buttons">
+          <button id="btn-ending-review" class="menu-btn">翻看对话记录</button>
+          <button id="btn-ending-restart" class="menu-btn">重新开始</button>
+          <button id="btn-ending-menu" class="menu-btn primary">返回标题画面</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 游戏 UI ═══════════════ -->
+    <div id="game-ui" class="hidden">
+      <!-- 顶部状态栏（微信风格） -->
+      <header id="header">
+        <button id="btn-menu" class="header-btn" title="菜单">☰</button>
+        <span id="scene-title">RC-7</span>
+        <button id="btn-change-bg" class="header-btn" title="更换聊天背景">🖼</button>
+        <span id="day-indicator">Day 1</span>
+      </header>
+
+      <!-- 对话区域 -->
+      <main id="chat-area">
+        <div id="message-list"></div>
+      </main>
+
+      <!-- 选项区域 -->
+      <div id="choices-area" class="hidden"></div>
+
+      <!-- 点击继续提示 -->
+      <div id="tap-hint" class="hidden">
+        <span>点击继续</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 隐藏的背景图选择器 ═══════════════ -->
+    <input type="file" id="bg-file-input" accept="image/*" style="display:none">
+
+    <!-- ═══════════════ 开发者面板 ═══════════════ -->
+    <div id="dev-panel" class="hidden">
+      <div class="dev-header">
+        <span>🔧 调试面板</span>
+        <button id="btn-dev-close" class="dev-close">✕</button>
+      </div>
+      <div class="dev-body">
+        <div class="dev-section">
+          <div class="dev-section-title">变量状态</div>
+          <div id="dev-variables" class="dev-var-list"></div>
+        </div>
+        <div class="dev-section">
+          <div class="dev-section-title">场景跳转</div>
+          <div id="dev-current-scene" class="dev-info"></div>
+          <select id="dev-scene-select" class="dev-select"></select>
+          <button id="btn-dev-jump" class="dev-btn">跳转</button>
+        </div>
+        <div class="dev-section">
+          <button id="btn-dev-reset" class="dev-btn danger">重置所有变量</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════ Capacitor 原生桥接（仅打包 APP 时使用） ═══════════════ -->
+  <script src="js/vendor/capacitor.js"></script>
+  <script src="js/vendor/plugin.js"></script>
+  <!-- ═══════════════ 存储适配层 ═══════════════ -->
+  <script src="js/storage.js"></script>
+
+  <!-- ═══════════════ 脚本数据 ═══════════════ -->
+  <script src="data/day1.js"></script>
+  <script src="data/day2.js"></script>
+  <script src="data/day3.js"></script>
+  <script src="data/day4.js"></script>
+  <script src="data/day5.js"></script>
+  <script src="data/day6.js"></script>
+  <script src="data/day7.js"></script>
+  <script src="data/day8.js"></script>
+
+  <!-- ═══════════════ 游戏引擎 ═══════════════ -->
+  <script src="js/engine.js"></script>
+  <script>
+    const engine = new GameEngine();
+    engine.init('message-list', 'choices-area', 'tap-hint', 'scene-title', 'day-indicator');
+
+    // 按顺序加载所有天
+    const allScripts = [
+      DAY1_SCRIPT, DAY2_SCRIPT, DAY3_SCRIPT, DAY4_SCRIPT,
+      DAY5_SCRIPT, DAY6_SCRIPT, DAY7_SCRIPT, DAY8_SCRIPT
+    ];
+    allScripts.forEach(script => engine.loadScript(script));
+
+    // 绑定暂停菜单按钮
+    document.getElementById('btn-menu').addEventListener('click', () => {
+      engine.showPauseMenu();
+    });
+
+    // 绑定更换聊天背景按钮
+    document.getElementById('btn-change-bg').addEventListener('click', () => {
+      document.getElementById('bg-file-input').click();
+    });
+    document.getElementById('bg-file-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        engine.setChatBackground(ev.target.result);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // 加载已保存的聊天背景
+    engine._loadChatBackground();
+  </script>
+
+  <!-- ═══════════════ Service Worker ═══════════════ -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(() => console.log('✅ PWA 离线缓存就绪'))
+        .catch(() => console.log('⚠ SW 注册失败（可能本地开发环境）'));
+    }
+  </script>
+</body>
+</html>
