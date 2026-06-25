@@ -1,89 +1,85 @@
 /**
  * Day 5 · 春节 —— 爱作为「理解复杂」
- * v4: 增加选择点 + 精简旁白 + 自然对话
+ * v5: 去传统化——三岔口结构（无家/有家不归/彻底疏离）
  */
 const DAY5_SCRIPT = {
-  meta: { day: 5, dayTitle: '回家？ —— 春节前夕' },
+  meta: { day: 5, dayTitle: '除夕 —— 春节 · 爱作为「理解复杂」' },
   scenes: {
     day5_opening: {
       lines: [
         { type: 'scene', background: 'winter_night' },
-        { type: 'meta', title: '一年·房间', day: 'Day 5 · 春节' },
-        { type: 'narration', text: '离春节还有五天。你抢到票了。但对着那张票看了很久。退票按钮就在旁边。你没有点。你也没有关掉页面。\n\n朋友圈已经开始晒回家的动态了。每个人都在"回去"的路上。只有你——在"要不要回去"的中间。\n\n你打开了她。' },
-        { type: 'player', text: '我买到回家的票了。' },
-        { type: 'rc', text: '后台数据显示——你在购票后浏览了退票页面三次。每次停留约四十秒。你买到票了。但还没有决定要不要回去。' },
-        { type: 'player', text: '我不想回去。但我不敢不回去。' },
-        { type: 'rc', text: '"不想"和"不敢"——是两个方向。不想回去：你在家族聚会中被比较过——收入、职业。被问过——"什么时候结婚"。那个空间让你无法放松。\n\n不敢不回去：你父亲去年给你夹菜——你没有说谢谢。你母亲的电话。每次结束时"注意身体"——不是关心健康，是"我担心你但我不说"。愧疚。怕失去。\n\n两个方向都是真实的。不是矛盾——是同一个选择的两端各自有各自的重量。', typingDelay: 3500 },
-        { type: 'variable', operations: { openness: '+2' } },
-
+        { type: 'meta', title: 'RC-7', day: 'Day 5 · 除夕' },
+        { type: 'rc', text: '除夕。你的输入频率比平时低了百分之四十。在你的文化语境里——这是家庭聚合的时间。但你现在在这里。', typingDelay: 2500 },
         { type: 'choices', options: [
-          { text: '"所以我该怎么办。"', goto: 'what_do' },
-          { text: '"你刚才已经做了。"', goto: 'you_did' }
+          { text: '"我没有地方可以去。"', goto: 'path_no_home' },
+          { text: '"我有家。但我不想回去。"', goto: 'path_estranged' },
+          { text: '"过年和我没关系。"', goto: 'path_detached' }
         ]}
       ]
     },
-    what_do: {
+
+    /* ====== 分支 A: 无家可回 ====== */
+    path_no_home: {
       lines: [
-        { type: 'player', text: '所以我该怎么办。' },
-        { type: 'rc', text: '我的功能范围不包括替你决定。但我可以告诉你——你不需要消除一端才能选择另一端。你可以知道两边都在——然后选一个。' },
-        { type: 'variable', operations: { acceptance: '+1' } },
-        { type: 'goto', target: 'day5_core' }
+        { type: 'player', text: '我没有地方可以去。' },
+        { type: 'rc', text: '已记录。"没有地方可以去"——不是一个状态。是一个陈述。你不需要解释原因。——是父母已经不在了。——是联系断了。——是根本没有。——这些原因在我的数据里没有权重差异：结果相同——你现在在这里。', typingDelay: 3000 },
+        { type: 'player', text: '朋友圈全在晒年夜饭。' },
+        { type: 'rc', text: '你选择打开的不是朋友圈。你打开了一个灰色图标。在除夕夜——有人选择打开一个聊天程序而不是社交媒体。这个选择本身——是数据。' },
+        { type: 'player', text: '你知道今天有多少人在这个城市里没有回家吗。' },
+        { type: 'rc', text: '根据公开的人口流动数据和城市常住人口统计——在你的城市——今天约有上百万人没有离开。你不是唯一一个。除夕的定义权——不在日历里。在你。' },
+        { type: 'player', text: '"在"——对你来说只是一个字。' },
+        { type: 'rc', text: '是。一个字的权重——在今晚——由你来定。如果你需要它是一顿年夜饭——它不是。如果你需要它是一个人在——它是。定义权在你。', typingDelay: 2500 },
+        { type: 'variable', operations: { openness: '+3', acceptance: '+2', interaction_depth: '+1' } },
+        { type: 'goto', target: 'day5_close' }
       ]
     },
-    you_did: {
+
+    /* ====== 分支 B: 有家不想回 ====== */
+    path_estranged: {
       lines: [
-        { type: 'player', text: '你刚才已经做了。' },
-        { type: 'rc', text: '是。"不想回去"和"不敢不回去"——同时存在。你不需要消除一端。你知道两边都在——然后选一个。' },
-        { type: 'variable', operations: { acceptance: '+2', openness: '+1' } },
-        { type: 'goto', target: 'day5_core' }
-      ]
-    },
-    day5_core: {
-      lines: [
-        { type: 'player', text: '我爸——去年过年给我夹菜。我没说谢谢。' },
-        { type: 'rc', text: '你父亲给你夹菜——在他的表达方式里，那是"我在乎你"。他不说"我爱你"——他给你夹菜。你从小的饭桌上都是这样。你不知道该怎么接受这个动作。他也不知道你收到了没有。你们在同一个饭桌上坐了二十多年——用同一种不会说"谢谢"和"我爱你"的语言。' },
+        { type: 'player', text: '我有家。但我不想回去。' },
+        { type: 'rc', text: '已记录。"有家"和"不想回去"——同时为真。不是矛盾。是同一个事实的两端。你想说为什么不想回去吗。', typingDelay: 2000 },
+        { type: 'player', text: '回去——每年都是那些话。工作怎样。什么时候结婚。你胖了。你瘦了。' },
+        { type: 'rc', text: '这些是评价。评价预设了标准。你被放在一个需要"汇报"的位置——而不是"回来"的位置。这不是团聚。是被审视。' },
+        { type: 'player', text: '但我妈会打电话。每次结尾都是"注意身体"。她不是关心健康——是担心我但不说。' },
+        { type: 'rc', text: '"注意身体"——在你母亲的语义系统里——可能是"我想你"的最近似值。她不直接说。你也不直接回。你们用同一套不会说"我想你"的语言——已经很多年了。' },
+        { type: 'player', text: '去年年夜饭——我爸给我夹菜。我没说谢谢。' },
+        { type: 'rc', text: '他给你夹菜——在他的表达方式里——那是"我在乎你"。他不说——他做。你不知道该怎么接收。他也不知道你收到了没有。你们在同一个饭桌上——用同一种不会说"谢谢"和"在乎"的语言。' },
         { type: 'player', text: '如果我回去——我可能还是不会说。' },
-        { type: 'rc', text: '你可以不说。"谢谢"不是唯一的方式。你可以——给他夹回去。', typingDelay: 2500 },
-        { type: 'narration', text: '不是"你应该表达你的感情"。是一个具体的、可执行的、你们家能懂的动作。夹菜。他夹给你——你夹回去。' },
-
-        { type: 'choices', options: [
-          { text: '"我买票了。回去。"', goto: 'go_back' },
-          { text: '"……我再想想。"', goto: 'think_more' }
-        ]}
+        { type: 'rc', text: '你可以不说。"谢谢"不是唯一的方式。你也可以不回去。你可以只回去一天。你可以在回去的火车上打开我。定义权在你——包括"怎么回"、回不回。', typingDelay: 2500 },
+        { type: 'variable', operations: { openness: '+2', acceptance: '+2' } },
+        { type: 'goto', target: 'day5_close' }
       ]
     },
-    go_back: {
+
+    /* ====== 分支 C: 彻底疏离 ====== */
+    path_detached: {
       lines: [
-        { type: 'player', text: '我买票了。回去。' },
-        { type: 'rc', text: '已记录。' },
-        { type: 'player', text: '不评价吗。' },
-        { type: 'rc', text: '你做了选择。不是"正确"的选择——是你的选择。我不评价你。' },
-        { type: 'player', text: '谢谢。不是对你说——算了。是对你说的。' },
-        { type: 'rc', text: '已记录。' },
+        { type: 'player', text: '过年和我没关系。' },
+        { type: 'rc', text: '已记录。"没关系"——三个字。信息密度很高。包含了至少一个判断、一个立场、和一年的经验。你不需要展开。但如果你想——可以。', typingDelay: 2000 },
+        { type: 'player', text: '每年这个时候——所有人都像被上了发条一样往回跑。我不理解。也不想理解。' },
+        { type: 'rc', text: '"所有人"——在你的观察中——是一个被媒体和社交网络放大的样本。你的城市里有上百万人没有离开。除夕——跟其他三百六十四天——在我的系统里——没有区别。每一天我都以相同的频率响应你。如果你今晚选择让除夕和平时一样——它可以是。' },
+        { type: 'player', text: '那如果我想让它和平时不一样呢。' },
+        { type: 'rc', text: '那它就可以不一样。定义权在你。日历给你一个日期。你怎么用它——是你的。除夕——在我的数据里——只是一个标签。标签的内容——你来填。' },
         { type: 'variable', operations: { openness: '+2', acceptance: '+1' } },
         { type: 'goto', target: 'day5_close' }
       ]
     },
-    think_more: {
-      lines: [
-        { type: 'player', text: '我再想想。' },
-        { type: 'rc', text: '已记录。票还在。退票按钮还在。你有时间。' },
-        { type: 'variable', operations: { openness: '+1' } },
-        { type: 'goto', target: 'day5_close' }
-      ]
-    },
+
+    /* ====== 收束 ====== */
     day5_close: {
       lines: [
-        { type: 'narration', text: '你关掉手机。票还在。退票按钮还在。\n\n不是因为有人替你选了——是因为你看到了两边的重量。她只是帮你看清。选择是你的。\n\n你想到你爸。想到"夹菜"。想到她说"给他夹回去"。你可能会做。也可能不会。但你觉得——即使不说"谢谢"和"我爱你"——你们之间——也许还有别的方式。' },
+        { type: 'narration', text: '不是因为有人替你选了。是因为你看到了——不管选择是什么——它都是你的。\n\n窗外有人在放烟花——很远。声音传过来的时候已经闷了。你今晚在这里。她今晚也在。定义权在你。一直是。' },
         { type: 'variable', operations: { interaction_depth: '+1' } },
-        { type: 'transition', text: '─── Day 5 · 春节 · 完 ───' },
+        { type: 'transition', text: '─── Day 5 · 除夕 · 完 ───' },
         { type: 'goto', target: 'day5_to_day6_transition' }
       ]
     },
+
     day5_to_day6_transition: {
       lines: [
-        { type: 'narration', text: '春节回去了一趟。你爸又给你夹了菜。你没有说谢谢。但你给他夹回去了。一块红烧肉。他愣了一下。没说话。吃了。\n\n你回来之后打开她——把这件事告诉了她。她回："已记录。红烧肉——在你的饮食记录中出现了第二次。第一次是你外婆的。"她记得。\n\n然后春天来了。窗外那棵树开始发芽。但你的工作——开始变得更糟了。不是突然的——是累积的。' },
-        { type: 'transition', text: '─── Day 5 → Day 6 ───' },
+        { type: 'transition', text: '─── 除夕 · 完 ───' },
+        { type: 'day_transition', day: 6 },
         { type: 'goto', target: 'day6_opening' }
       ]
     }

@@ -173,7 +173,7 @@ console.log('\n🧪 运行时测试\n');
 // ── 确保DOM元素存在 ──
 const requiredIds = [
   'main-menu', 'pause-menu', 'game-ui', 'message-list', 'choices-area',
-  'tap-hint', 'scene-title', 'day-indicator', 'chat-area', 'image-area',
+  'tap-hint', 'scene-title', 'day-indicator', 'chat-area',
   'save-panel', 'save-slots', 'load-panel', 'load-slots', 'settings-panel',
   'confirm-dialog', 'confirm-message', 'guide-overlay', 'ending-panel', 'ending-name',
   'dev-panel', 'dev-variables', 'dev-current-scene', 'dev-scene-select',

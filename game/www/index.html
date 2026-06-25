@@ -190,25 +190,13 @@
 
     <!-- ═══════════════ 游戏 UI ═══════════════ -->
     <div id="game-ui" class="hidden">
-      <!-- 顶部状态栏 -->
+      <!-- 顶部状态栏（微信风格） -->
       <header id="header">
         <button id="btn-menu" class="header-btn" title="菜单">☰</button>
-        <span id="scene-title">一年·房间</span>
+        <span id="scene-title">RC-7</span>
+        <button id="btn-change-bg" class="header-btn" title="更换聊天背景">🖼</button>
         <span id="day-indicator">Day 1</span>
       </header>
-
-      <!-- 角色形象展示区（画框） -->
-      <div id="portrait-frame">
-        <div id="portrait-bg" class="portrait-bg bg-day1"></div>
-        <div id="portrait-base" class="portrait-base portrait-state-idle"></div>
-        <div id="amber-light" class="amber-light"></div>
-        <div id="portrait-border"></div>
-      </div>
-
-      <!-- 图片展示区（galgame/直播风格，预留给后期美术素材） -->
-      <div id="image-area" class="hidden">
-        <!-- 图片由引擎通过 image 指令动态插入 -->
-      </div>
 
       <!-- 对话区域 -->
       <main id="chat-area">
@@ -223,6 +211,9 @@
         <span>点击继续</span>
       </div>
     </div>
+
+    <!-- ═══════════════ 隐藏的背景图选择器 ═══════════════ -->
+    <input type="file" id="bg-file-input" accept="image/*" style="display:none">
 
     <!-- ═══════════════ 开发者面板 ═══════════════ -->
     <div id="dev-panel" class="hidden">
@@ -266,7 +257,6 @@
   <script src="data/day8.js"></script>
 
   <!-- ═══════════════ 游戏引擎 ═══════════════ -->
-  <script src="js/portrait.js"></script>
   <script src="js/engine.js"></script>
   <script>
     const engine = new GameEngine();
@@ -283,6 +273,23 @@
     document.getElementById('btn-menu').addEventListener('click', () => {
       engine.showPauseMenu();
     });
+
+    // 绑定更换聊天背景按钮
+    document.getElementById('btn-change-bg').addEventListener('click', () => {
+      document.getElementById('bg-file-input').click();
+    });
+    document.getElementById('bg-file-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        engine.setChatBackground(ev.target.result);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // 加载已保存的聊天背景
+    engine._loadChatBackground();
   </script>
 
   <!-- ═══════════════ Service Worker ═══════════════ -->

@@ -52,7 +52,6 @@ class GameEngine {
     this.sceneTitle = null;
     this.dayIndicator = null;
     this.chatArea = null;
-    this.imageArea = null;
 
     // ── 通知/主动消息 ──
     this._pendingNotifications = [];
@@ -78,17 +77,6 @@ class GameEngine {
     this.sceneTitle = document.getElementById(sceneTitleId);
     this.dayIndicator = document.getElementById(dayIndicatorId);
     this.chatArea = document.getElementById('chat-area');
-    this.imageArea = document.getElementById('image-area');
-
-    // ── 图片区域点击 → 推进（galgame风格） ──
-    if (this.imageArea) {
-      this.imageArea.addEventListener('click', (e) => {
-        if (this.isWaitingForChoice) return;
-        if (this.isFinished) return;
-        if (this.isPaused) return;
-        this.advance();
-      });
-    }
 
     // ── 游戏区域点击 → 推进 ──
     if (this.chatArea) {
@@ -276,11 +264,6 @@ class GameEngine {
     }
     if (day !== undefined && this.dayIndicator) {
       this.dayIndicator.textContent = day;
-      // 同步画框背景
-      const dayNum = parseInt(day);
-      if (!isNaN(dayNum) && typeof PortraitManager !== 'undefined') {
-        PortraitManager.setDayBackground(dayNum);
-      }
     }
   }
 
@@ -467,11 +450,9 @@ class GameEngine {
         break;
 
       case 'rc':
-        if (typeof PortraitManager !== 'undefined') PortraitManager.onRCGenerating();
         await this._renderWithTypewriter('rc', line.text, line.typingDelay);
         this.showTapHint();
         this.isProcessing = false;
-        if (typeof PortraitManager !== 'undefined') PortraitManager.onMessageArrived();
         break;
 
       case 'player':
@@ -503,6 +484,13 @@ class GameEngine {
         this.isProcessing = false;
         break;
 
+      case 'day_transition':
+        // 日期间过渡动画（替代旁白环境描写）
+        await this.showDayTransition(line.day);
+        this.isProcessing = false;
+        this.processNext();
+        break;
+
       case 'conditional':
         this.handleConditional(line);
         this.isProcessing = false;
@@ -515,19 +503,19 @@ class GameEngine {
         break;
 
       case 'scene':
-        this._applySceneBackground(line.background, line.transition);
+        // 用户自定义聊天背景，忽略剧本场景背景
         this.isProcessing = false;
         this.processNext();
         break;
 
       case 'image':
-        this._showImage(line.src, line.alt, line.transition, line.position);
+        // 图片展示区已移除
         this.isProcessing = false;
         this.processNext();
         break;
 
       case 'image_hide':
-        this._hideImage();
+        // 图片展示区已移除
         this.isProcessing = false;
         this.processNext();
         break;
@@ -631,14 +619,14 @@ class GameEngine {
     const wrapper = document.createElement('div');
 
     if (type === 'rc') {
-      // RC消息：头像+气泡容器
+      // RC消息（微信白气泡+头像，左对齐）
       wrapper.className = 'msg-rc-wrapper';
       const avatar = document.createElement('div');
       avatar.className = 'rc-avatar';
       wrapper.appendChild(avatar);
 
       const bubble = document.createElement('div');
-      bubble.className = 'msg-rc';
+      bubble.className = 'msg-rc-bubble';
 
       if (text.includes('\n\n')) {
         const paragraphs = text.split('\n\n');
@@ -660,12 +648,12 @@ class GameEngine {
         this.scrollToBottom();
         await this._typewriteInto(bubble, text);
       }
-    } else {
-      // 其他类型（narration/player/transition）：直接渲染
+    } else if (type === 'player') {
+      // 玩家消息（微信绿气泡，右对齐）
       const el = document.createElement('div');
-      el.className = `msg msg-${type}`;
+      el.className = 'msg-player-bubble msg-wechat';
 
-      if ((type === 'narration') && text.includes('\n\n')) {
+      if (text.includes('\n\n')) {
         const paragraphs = text.split('\n\n');
         this.messageList.appendChild(el);
         this.scrollToBottom();
@@ -683,6 +671,37 @@ class GameEngine {
         this.scrollToBottom();
         await this._typewriteInto(el, text);
       }
+    } else if (type === 'narration') {
+      // 旁白（微信系统消息风格，居中灰字）
+      const el = document.createElement('div');
+      el.className = 'msg-system';
+
+      if (text.includes('\n\n')) {
+        const paragraphs = text.split('\n\n');
+        this.messageList.appendChild(el);
+        this.scrollToBottom();
+        for (let i = 0; i < paragraphs.length; i++) {
+          if (i > 0) {
+            const br = document.createElement('br');
+            el.appendChild(br);
+          }
+          const span = document.createElement('span');
+          el.appendChild(span);
+          await this._typewriteInto(span, paragraphs[i]);
+        }
+      } else {
+        this.messageList.appendChild(el);
+        this.scrollToBottom();
+        await this._typewriteInto(el, text);
+      }
+    } else {
+      // 其他类型（transition等）
+      const el = document.createElement('div');
+      el.className = `msg-${type}`;
+
+      this.messageList.appendChild(el);
+      this.scrollToBottom();
+      await this._typewriteInto(el, text);
     }
 
     // 记录到历史
@@ -691,16 +710,20 @@ class GameEngine {
 
   async _showTypingIndicator(delayMs) {
     const delay = delayMs || 3000;
-    // 创建"正在输入…"指示器
+    // 创建"正在输入…"指示器（微信白气泡风格）
     const indicator = document.createElement('div');
     indicator.className = 'typing-indicator';
     // 头像
     const avatar = document.createElement('div');
     avatar.className = 'rc-avatar';
     indicator.appendChild(avatar);
-    // 三个点
+    // 三个点（白色气泡内）
     const dots = document.createElement('div');
     dots.className = 'typing-dots';
+    dots.style.background = '#ffffff';
+    dots.style.borderRadius = '16px';
+    dots.style.borderBottomLeftRadius = '4px';
+    dots.style.boxShadow = '0 1px 3px rgba(0,0,0,0.12)';
     for (let i = 0; i < 3; i++) {
       const dot = document.createElement('span');
       dot.className = 'typing-dot';
@@ -763,14 +786,14 @@ class GameEngine {
     if (!text) return;
 
     if (type === 'rc') {
-      // RC消息：头像+气泡
+      // RC消息（微信白气泡+头像，左对齐）
       const wrapper = document.createElement('div');
       wrapper.className = 'msg-rc-wrapper';
       const avatar = document.createElement('div');
       avatar.className = 'rc-avatar';
       wrapper.appendChild(avatar);
       const bubble = document.createElement('div');
-      bubble.className = 'msg-rc';
+      bubble.className = 'msg-rc-bubble';
       if (text.includes('\n\n')) {
         const paragraphs = text.split('\n\n');
         paragraphs.forEach((p, i) => {
@@ -782,10 +805,11 @@ class GameEngine {
       }
       wrapper.appendChild(bubble);
       this.messageList.appendChild(wrapper);
-    } else {
+    } else if (type === 'player') {
+      // 玩家消息（微信绿气泡，右对齐）
       const el = document.createElement('div');
-      el.className = `msg msg-${type}`;
-      if ((type === 'narration') && text.includes('\n\n')) {
+      el.className = 'msg-player-bubble';
+      if (text.includes('\n\n')) {
         const paragraphs = text.split('\n\n');
         paragraphs.forEach((p, i) => {
           if (i > 0) el.appendChild(document.createElement('br'));
@@ -794,6 +818,25 @@ class GameEngine {
       } else {
         el.textContent = text;
       }
+      this.messageList.appendChild(el);
+    } else if (type === 'narration') {
+      // 旁白（微信系统消息风格）
+      const el = document.createElement('div');
+      el.className = 'msg-system';
+      if (text.includes('\n\n')) {
+        const paragraphs = text.split('\n\n');
+        paragraphs.forEach((p, i) => {
+          if (i > 0) el.appendChild(document.createElement('br'));
+          el.appendChild(document.createTextNode(p));
+        });
+      } else {
+        el.textContent = text;
+      }
+      this.messageList.appendChild(el);
+    } else {
+      const el = document.createElement('div');
+      el.className = `msg-${type}`;
+      el.textContent = text;
       this.messageList.appendChild(el);
     }
     this.scrollToBottom();
@@ -977,76 +1020,61 @@ class GameEngine {
   }
 
   /* =========================================
-   *  场景背景
+   *  场景背景（保留空方法以兼容旧脚本，实际由用户自定义背景替代）
    * ========================================= */
 
   _applySceneBackground(bgId, transition) {
-    const app = document.getElementById('app');
-    if (!app) return;
-
-    // 移除所有旧的场景 class
-    const classes = app.className.split(' ').filter(c => !c.startsWith('bg-'));
-    classes.push(`bg-${bgId}`);
-    app.className = classes.join(' ');
-
-    // 过渡动画
-    if (transition === 'fade' || !transition) {
-      app.style.transition = 'background 0.8s ease-in-out';
-    }
+    // 用户自定义聊天背景替代场景背景
   }
 
   /* =========================================
-   *  图片展示（galgame风格）
+   *  日期间过渡动画
    * ========================================= */
 
-  _showImage(src, alt, transition, position) {
-    if (!this.imageArea) return;
-    const img = this.imageArea.querySelector('img');
-    if (!img) {
-      const newImg = document.createElement('img');
-      newImg.alt = alt || '';
-      newImg.style.position = 'absolute';
-      newImg.style.maxHeight = '100%';
-      newImg.style.width = 'auto';
-      this.imageArea.appendChild(newImg);
-    }
-    const imgEl = this.imageArea.querySelector('img');
-    if (!imgEl) return;
+  /** 每天的季节图标与标题配置 */
+  DAY_TRANSITIONS = {
+    1: { icon: '🍃', season: '夏末', title: '爱作为「注意」' },
+    2: { icon: '🌕', season: '月圆 · 中秋', title: '爱作为「记忆」' },
+    3: { icon: '🍂', season: '深秋', title: '爱作为「接收」' },
+    4: { icon: '❄️', season: '冬至', title: '爱作为「照顾」' },
+    5: { icon: '🏮', season: '春节', title: '爱作为「理解复杂」' },
+    6: { icon: '🌸', season: '初春', title: '爱作为「接住」' },
+    7: { icon: '🌿', season: '清明', title: '爱作为「见证」' },
+    8: { icon: '☀️', season: '夏至', title: '爱作为「放手」' },
+  };
 
-    // 过渡动画
-    if (transition === 'fade') {
-      imgEl.style.opacity = '0';
-      imgEl.style.transition = 'opacity 0.5s ease-in-out';
+  /**
+   * 显示日期间过渡动画
+   * @param {number} dayNum - 目标 Day 编号
+   */
+  showDayTransition(dayNum) {
+    return new Promise(resolve => {
+      const app = document.getElementById('app');
+      if (!app) { resolve(); return; }
+
+      const config = this.DAY_TRANSITIONS[dayNum] || { icon: '·', season: `Day ${dayNum}`, title: '' };
+
+      // 创建过渡覆盖层
+      const overlay = document.createElement('div');
+      overlay.id = 'day-transition';
+      overlay.innerHTML = `
+        <div class="dt-season-icon">${config.icon}</div>
+        <div class="dt-day-number">Day ${dayNum}</div>
+        <div class="dt-day-title">${config.season}</div>
+        <div class="dt-subtitle">${config.title}</div>
+      `;
+      app.appendChild(overlay);
+
+      // 2.5 秒后淡出
       setTimeout(() => {
-        imgEl.src = src;
-        imgEl.alt = alt || '';
-        imgEl.style.opacity = '1';
-      }, 50);
-    } else {
-      imgEl.src = src;
-      imgEl.alt = alt || '';
-      imgEl.style.opacity = '1';
-    }
-
-    // 位置：center（默认）/ left / right
-    if (position === 'left') imgEl.style.left = '0';
-    else if (position === 'right') imgEl.style.right = '0';
-    else imgEl.style.left = '50%';
-
-    this.imageArea.classList.remove('hidden');
-  }
-
-  _hideImage() {
-    if (!this.imageArea) return;
-    const img = this.imageArea.querySelector('img');
-    if (img) {
-      img.style.opacity = '0';
-      img.style.transition = 'opacity 0.3s ease-in-out';
-    }
-    setTimeout(() => {
-      this.imageArea.classList.add('hidden');
-      if (img) img.src = '';
-    }, 300);
+        overlay.classList.add('fade-out');
+        // 动画结束后移除
+        setTimeout(() => {
+          if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+          resolve();
+        }, 500);
+      }, 2500);
+    });
   }
 
   /* =========================================
@@ -1102,6 +1130,39 @@ class GameEngine {
       requestAnimationFrame(() => {
         this.chatArea.scrollTop = 0;
       });
+    }
+  }
+
+  /* =========================================
+   *  聊天背景图管理
+   * ========================================= */
+
+  /** 设置聊天背景图（用户从相册选择） */
+  setChatBackground(imageDataUrl) {
+    GameStorage.set('rc7_chat_bg', imageDataUrl);
+    this._applyChatBackground(imageDataUrl);
+  }
+
+  /** 应用聊天背景图到聊天区域 */
+  _applyChatBackground(imageDataUrl) {
+    if (this.chatArea) {
+      this.chatArea.style.setProperty('--chat-bg-image', `url(${imageDataUrl})`);
+    }
+  }
+
+  /** 加载已保存的聊天背景 */
+  _loadChatBackground() {
+    const saved = GameStorage.get('rc7_chat_bg');
+    if (saved) {
+      this._applyChatBackground(saved);
+    }
+  }
+
+  /** 清除聊天背景（恢复默认） */
+  clearChatBackground() {
+    GameStorage.remove('rc7_chat_bg');
+    if (this.chatArea) {
+      this.chatArea.style.removeProperty('--chat-bg-image');
     }
   }
 

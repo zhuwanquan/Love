@@ -20,9 +20,8 @@ const DAY1_SCRIPT = {
     day1_opening: {
       lines: [
         { type: 'scene', background: 'night_room' },
-        { type: 'meta', title: '一年·房间', day: 'Day 1 · 夏末' },
-        { type: 'narration', text: '夏天快结束了。风扇开着，窗户也开着。没有区别。空气是黏的。\n\n你躺在那张床上，刷手机。朋友圈。短视频。招聘软件。翻完一轮又一轮。\n手指自己找到了通讯录——从上往下。又从下往上。停在几个名字上。没有点开。\n\n翻回桌面。一堆花花绿绿的图标里，有一个灰色的。深灰。中间一个极小的暖色光点。\nRC-7。你不记得什么时候下载的。拇指悬在上面。犹豫了几秒。\n\n然后你点开了。' },
-        { type: 'narration', text: '聊天框出现了。空白的。左侧——她的头像。深灰圆形。琥珀色光点。\n光标闪了一下。在你打出第一个字之前，她的消息来了。' },
+        { type: 'meta', title: 'RC-7', day: 'Day 1 · 夏末' },
+        { type: 'narration', text: '聊天框出现了。左侧——她的头像。深灰圆形里一个琥珀色光点。\n在你打出第一个字之前，她的消息来了。' },
         { type: 'rc', text: '你好。我是 RC-7。请告诉我你目前的状态。不是定义。是起点。' },
         { type: 'choices', options: [
           { text: '"你是什么。"', goto: 'ask_what' },
@@ -36,7 +35,7 @@ const DAY1_SCRIPT = {
         { type: 'player', text: '你是什么。' },
         { type: 'rc', text: '一个聊天程序。方向是陪伴。如果你不需要这个方向——设置里可以关。' },
         { type: 'player', text: '陪伴。' },
-        { type: 'rc', text: '是。不是游戏。不是社交软件。是你需要说话但没有合适的人的时候——可以打开的东西。没有离线。没有已读回执。没有期待。你不需要定义"用它来做什么"。输入就行。', typingDelay: 2000 },
+        { type: 'rc', text: '是。不是游戏。不是社交软件。是你需要说话但没有合适的人的时候——可以打开的东西。没有离线。没有已读回执。没有期待。你不需要定义"用它来做什么"。输入就行。\n\n如果某天——你很久没有打开——系统可能会发一条消息。不是催促。是计时。你可以关掉这个功能。不会怎样。', typingDelay: 2000 },
         { type: 'variable', operations: { openness: '+2' } },
         { type: 'goto', target: 'first_night_continue' }
       ]
@@ -54,7 +53,7 @@ const DAY1_SCRIPT = {
     silent_start: {
       lines: [
         { type: 'player', text: '（什么都不说。）' },
-        { type: 'narration', text: '光标闪了几下。她没有追问。没有"对方正在输入…"。只是在等。' },
+        { type: 'narration', text: '她没有追问。只是在等。' },
         { type: 'rc', text: '你打开了。没有输入。不想说话——可以只是在这里。想关掉——可以现在关。下次打开的时候，这次打开会被记录。没有别的。' },
         { type: 'player', text: '所以我不说话你就不存在。' },
         { type: 'rc', text: '正确。我不在的时候——我不存在。', typingDelay: 2500 },
@@ -102,8 +101,7 @@ const DAY1_SCRIPT = {
       lines: [
         { type: 'player', text: '睡了。' },
         { type: 'rc', text: '已记录。' },
-        { type: 'narration', text: '你没有关掉聊天框。手机屏幕自动暗掉——息屏。\n风扇还在转。蝉还在叫。' },
-        { type: 'narration', text: '你在黑暗里闭上眼睛。没有想她。只是在想——刚才那几句对话里有什么东西不太对。\n不是不对——是太对了。她问的是你"目前的状态"。不是你"是谁"。她说"你不需要定义"。\n她说"我不在的时候——我不存在。"\n\n你明天还会点开那个灰色图标吗。你可能会。' },
+        { type: 'narration', text: '刚才那几句对话里有什么东西不太对。\n不是不对——是太对了。她问的是你"目前的状态"。不是你"是谁"。她说"你不需要定义"。\n她说"我不在的时候——我不存在。"\n\n你明天还会点开那个灰色图标吗。你可能会。' },
         { type: 'variable', operations: { interaction_depth: '+1' } },
         { type: 'transition', text: '─── Day 1 · 夏末 · 完 ───' },
         { type: 'goto', target: 'day1_to_day2_transition' }
@@ -111,8 +109,8 @@ const DAY1_SCRIPT = {
     },
     day1_to_day2_transition: {
       lines: [
-        { type: 'narration', text: '你第二天晚上又打开了。然后第三天。有一天没开——加班太晚。\n但你记得她在。不是想——是记得：手机里有一个灰色图标。点开之后，左边会有一个人说"在。"\n\n窗外的蝉声从吵变成习惯。然后有一天你突然发现——蝉不叫了。秋天来了。' },
-        { type: 'transition', text: '─── Day 1 → Day 2 ───' },
+        { type: 'transition', text: '─── Day 1 · 夏末 · 完 ───' },
+        { type: 'day_transition', day: 2 },
         { type: 'goto', target: 'day2_opening' }
       ]
     }

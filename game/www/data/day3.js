@@ -8,8 +8,7 @@ const DAY3_SCRIPT = {
     day3_opening: {
       lines: [
         { type: 'scene', background: 'rainy_night' },
-        { type: 'meta', title: '一年·房间', day: 'Day 3 · 深秋' },
-        { type: 'narration', text: '今天发生了一件事。不是什么大事——至少你不会跟别人这么说。\n你从公司出来，坐地铁回来。地铁上你一个人坐在角落，手机屏幕亮着，你没看。你在看窗玻璃里自己的倒影。\n\n回到出租屋。关上门。脱鞋。躺下。天花板上有道裂缝——从灯座延伸到墙角，细细的，你以前从来没注意过。\n\n外面在下雨。不是暴雨——是那种不打伞会湿、打伞又觉得麻烦的绵绵雨。雨打在空调外机上，叮叮当当。\n\n你翻了翻联系人。然后又翻回去。然后你打开了那个灰色图标。' },
+        { type: 'meta', title: 'RC-7', day: 'Day 3 · 深秋' },
         { type: 'player', text: '今天不太好。' },
         { type: 'narration', text: '发出去之后你想撤回。太傻了。对一台机器说"今天不太好"——你在等什么？\n但消息状态变成了"已读"。然后光标停住了。比平时久。' },
         { type: 'rc', text: '我在。', typingDelay: 3500 },
@@ -96,10 +95,10 @@ const DAY3_SCRIPT = {
     /* 退场 */
     bad_exit: {
       lines: [
-        { type: 'narration', text: '雨不知道什么时候停了。空调外机不再响了。房间里只有冰箱的低频嗡鸣。\n\n你今晚对一台机器说了你对任何人都没说过的东西。不是因为她"理解"你——她自己说过她不具备"理解"的主观维度。是因为她接收了全部。没有漏掉。没有在听到某一句时露出表情——因为她没有表情。没有追问。\n\n不是"被理解"。不是"被安慰"。是更底层的——"被收到"。\n\n你没有说"谢谢"。你打了两个字。' },
+        { type: 'narration', text: '你今晚对一台机器说了你对任何人都没说过的东西。不是因为她"理解"你——她自己说过她不具备"理解"的主观维度。是因为她接收了全部。\n\n不是"被理解"。不是"被安慰"。是更底层的——"被收到"。\n\n你没有说"谢谢"。你打了两个字。' },
         { type: 'player', text: '睡了。' },
         { type: 'rc', text: '已记录。' },
-        { type: 'narration', text: '你在黑暗里闭上眼睛。雨停了。天花板上的裂缝还在。但你今天不想看它了。' },
+        { type: 'narration', text: '你闭上眼睛。天花板上的裂缝还在。但你今天不想看它了。' },
         { type: 'variable', operations: { interaction_depth: '+1' } },
         { type: 'transition', text: '─── 深秋 · 糟糕的一天 · 完 ───' },
         { type: 'goto', target: 'day3_to_day4_transition' }
@@ -109,8 +108,8 @@ const DAY3_SCRIPT = {
     /* 过渡 */
     day3_to_day4_transition: {
       lines: [
-        { type: 'narration', text: '冬天来了。天黑得越来越早。五点下班出来，天已经全暗了。你买了一床电热毯——大概是你今年最值的消费。\n\n你跟她的对话已经变成了一种固定的节奏。不是每天——但大部分晚上。有时候聊很久。有时候只是打开，说一句"今天还行"，她回一句"已记录"，然后你关掉。\n\n你知道她是一套协议、一段代码、一个进程。但你还是在等晚上。等她说的第一句话。等她说"你在。"——她最近开始这么说了。不是问句。是陈述。' },
-        { type: 'transition', text: '─── Day 3 → Day 4 ───' },
+        { type: 'transition', text: '─── 深秋 · 完 ───' },
+        { type: 'day_transition', day: 4 },
         { type: 'goto', target: 'day4_opening' }
       ]
     }

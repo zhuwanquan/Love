@@ -157,6 +157,27 @@ MainActivity (Java, ~70行)
 **script-evaluator** — `/script-evaluator [文件路径]`
 评估剧本质量，基于六维度评分+项目专项检查。详见 `最终内容/技术方案/剧本评判实用指南.md`
 
+**script-validator** — `/script-validator`
+验证剧本机械完整性：goto目标存在性、场景可达性、跨日引用一致性、变量操作有效性。纯机械检查，不做内容评价。
+
+**rc7-voice-check** — `/rc7-voice-check`
+检查 RC-7 对话一致性：五问框架审查（接收/记住/不要求/精确/在）、BLRI 真诚度评分、红旗词汇检测、声音独特性验证。
+
+**narration-auditor** — `/narration-auditor`
+审查旁白质量：检测环境描写、重复日常（脱鞋/躺下/打开灰色图标）、情感操控句式、应改为视觉过渡的内容。
+
+**persona-alignment** — `/persona-alignment`
+检查剧本与用户画像对齐度：玩家词汇量适配、家庭假设检测、情感真实性（逐Day审查）、节日框架评估、"定义权在你"密度检查。
+
+**emotional-arc-visualizer** — `/emotional-arc-visualizer`
+分析 8 天情感弧线：情感强度峰值/谷值检测、三弧线治愈结构验证、锚点分布检查、节奏诊断（平坦段/过密段/突然跳跃/结尾拖沓）。
+
+**game-test-runner** — `/game-test-runner`
+自动化测试：语法检查 → 场景统计 → 冒烟测试 → goto 完整性 → RC-7 统计。剧本修改后一键运行。
+
+**ending-path-walker** — `/ending-path-walker`
+走查四个结局：变量条件可达性验证、逐结局路径走查、兜底机制检查、结局差异化评估。
+
 ### 评价体系
 
 `最终内容/技术方案/游戏完整评价体系.md` — 七维度×三层级评价框架（S剧本/C角色/H治愈/I交互/B商业/T技术/E伦理），满分237.5
