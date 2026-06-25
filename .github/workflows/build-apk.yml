@@ -5,13 +5,10 @@ on:
     branches: [main, v2-romance]
     paths:
       - 'game/www/**'
-      - 'game/package.json'
-      - 'game/capacitor.config.json'
-      - 'game/package-lock.json'
+      - 'game/android/**'
       - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
-# 确保单个 workflow 运行，避免并发冲突
 concurrency:
   group: apk-build
   cancel-in-progress: true
@@ -21,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: game
+        working-directory: game/android
 
     steps:
       - name: 检出代码
@@ -33,31 +30,19 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: 设置 Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: 安装 npm 依赖
-        run: npm install --registry=https://registry.npmmirror.com
-
       - name: 设置 Android SDK
         uses: android-actions/setup-android@v3
         with:
           packages: 'platforms;android-34 build-tools;34.0.0'
 
-      - name: 写入 Android SDK 路径
+      - name: 写入 local.properties
         run: |
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
           echo "JAVA_HOME=$JAVA_HOME"
 
-      - name: 同步 Capacitor（web 资产 → android）
-        run: npx cap sync android
-
       - name: 构建 Debug APK
         run: |
-          cd android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
