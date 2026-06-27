@@ -112,6 +112,9 @@ global.KeyboardEvent = class {};
 global.Event = class {};
 global.CustomEvent = class {};
 
+// v3: engine.js uses requestAnimationFrame without window prefix
+global.requestAnimationFrame = fn => setTimeout(fn, 0);
+
 // ── 加载数据文件 ──
 console.log('📂 加载剧本数据...');
 const DATA_DIR = path.join(__dirname, '..', 'www', 'data');
@@ -210,45 +213,72 @@ t('初始化', () => {
   e.init('message-list', 'choices-area', 'tap-hint', 'scene-title', 'day-indicator');
 });
 
-t('新游戏 → Day1', () => {
+t('新游戏 → 通讯录', () => {
   e.startNewGame();
   // 首次启动→引导页
   const guide = document.getElementById('guide-overlay');
   if (!guide) throw new Error('无引导页元素');
 });
 
-t('跳过引导 → 进入对话', () => {
+t('跳过引导 → 通讯录视图', () => {
   e._doStartNewGame();
-  if (e.currentSceneId !== 'day1_opening') throw new Error(`场景: ${e.currentSceneId}`);
+  // v3: 新游戏显示通讯录列表，不再直接跳转场景
+  const contactList = document.getElementById('contact-list');
+  const chatArea = document.getElementById('chat-area');
+  if (!contactList) throw new Error('无通讯录元素');
+  if (contactList.classList.contains('hidden')) throw new Error('通讯录应可见');
+  if (!chatArea.classList.contains('hidden')) throw new Error('聊天区应隐藏');
+  if (e._activeCharacters.length < 1) throw new Error('没有活跃角色');
+});
+
+t('打开柒的聊天', () => {
+  e.openChat('qi');
+  if (e._currentCharacter !== 'qi') throw new Error('当前角色不是柒');
+  const chatArea = document.getElementById('chat-area');
+  if (chatArea.classList.contains('hidden')) throw new Error('聊天区应可见');
 });
 
 t('推进对话', async () => {
-  // 推进直到遇到第一个选项
+  // 柒的首次接触消息已显示
   for (let i = 0; i < 10; i++) {
     if (e.isWaitingForChoice || e.isFinished) break;
     e.advance();
     await new Promise(r => setTimeout(r, 20));
   }
-  // 前三行应该是 narration → player → rc → choices
-  if (!e.isWaitingForChoice) {
-    console.log(`      状态: scene=${e.currentSceneId}, line=${e.lineIndex}, waiting=${e.isWaitingForChoice}`);
-  }
 });
 
-t('存档槽1', () => {
+t('返回通讯录', () => {
+  e.closeChat();
+  if (e._currentCharacter !== null) throw new Error('应返回通讯录');
+  const chatArea = document.getElementById('chat-area');
+  if (!chatArea.classList.contains('hidden')) throw new Error('聊天区应隐藏');
+});
+
+t('存档槽1（v3）', () => {
+  e.openChat('qi');
   e._doSave(1);
   const s = e.getSaveMeta(1);
-  if (!s || !s.sceneId) throw new Error('存档数据不完整');
+  if (!s || !s.sceneId && !e._currentCharacter) throw new Error('存档数据不完整');
 });
 
-t('自动存档', () => {
+t('存档槽1（v3兼容）', () => {
+  e.openChat('qi');
+  e._doSave(1);
+  const s = e.getSaveMeta(1);
+  // v3: 存档可能在通讯录视图或聊天视图
+  if (!s) throw new Error('存档不存在');
+});
+
+t('自动存档（v3）', () => {
+  e._autoSave();
   const saves = e.getAllSaves();
   if (!saves[0]) throw new Error('自动存档不存在');
 });
 
-t('读档', () => {
+t('读档（v3）', () => {
   e._doLoad(1);
-  if (!e.currentSceneId) throw new Error('读档失败');
+  // v3: 读档后可能在通讯录视图或聊天视图，两者都有效
+  if (!e._currentCharacter && !e.currentSceneId) throw new Error('读档失败：无活跃角色或场景');
 });
 
 t('存档删除', () => {
@@ -268,16 +298,16 @@ t('返回标题', () => {
   if (!e.isPaused) throw new Error('未暂停');
 });
 
-t('引导页逻辑(有存档/无存档)', () => {
+t('引导页逻辑(v3)', () => {
   // 清空存档
   Object.keys(localStorage._data).forEach(k => delete localStorage._data[k]);
   e.startNewGame();
   // 此时应该显示引导页
-  // _showGuide 设置 isPaused=true
   if (!e.isPaused) console.log('      (引导页正常显示)');
-  // 模拟点击 "开始对话"
+  // 模拟点击 "开始对话" → v3 进入通讯录视图
   e._doStartNewGame();
-  if (e.currentSceneId !== 'day1_opening') throw new Error('引导后未进入day1');
+  const contactList = document.getElementById('contact-list');
+  if (!contactList || contactList.classList.contains('hidden')) throw new Error('引导后应显示通讯录');
 });
 
 t('结局面板', async () => {

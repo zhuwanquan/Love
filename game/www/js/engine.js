@@ -64,6 +64,15 @@ class GameEngine {
 
     // ── 当前存档槽（用于继续游戏覆盖） ──
     this._currentSaveSlot = null;
+
+    // ── v3 多角色状态 ──
+    this._activeCharacters = ['qi'];
+    this._characterMessages = {};
+    this._currentCharacter = null;
+    this._currentRoute = null;
+    this._currentMonth = 1;
+    this._currentPhase = 'contact';
+    this._completedEvents = new Set();
   }
 
   /* =========================================
@@ -77,6 +86,9 @@ class GameEngine {
     this.sceneTitle = document.getElementById(sceneTitleId);
     this.dayIndicator = document.getElementById(dayIndicatorId);
     this.chatArea = document.getElementById('chat-area');
+
+    // ── v3 通讯录初始化 ──
+    this._initContactList();
 
     // ── 游戏区域点击 → 推进 ──
     if (this.chatArea) {
@@ -327,9 +339,20 @@ class GameEngine {
     this.isFinished = false;
     this.messageList.innerHTML = '';
     this.messageHistory = [];
-    this.updateMeta('一年·房间', 'Day 1');
-    this.jumpTo('day1_opening');
-    this.processNext();
+    // v3: 初始只有 RC-7
+    this._activeCharacters = ['qi'];
+    this._characterMessages = { qi: [] };
+    this.CHARACTERS.qi.unread = 1;
+    this._currentCharacter = null;
+    this._currentMonth = 1;
+    this._currentPhase = 'contact';
+    this._currentRoute = null;
+    this._completedEvents = new Set();
+    // 显示通讯录
+    document.getElementById('chat-area').classList.add('hidden');
+    document.getElementById('contact-list').classList.remove('hidden');
+    this.updateMeta('一年·房间', 'M1');
+    this._renderContactList();
   }
 
   continueGame() {
@@ -1545,5 +1568,272 @@ class GameEngine {
     this.jumpTo(select.value);
     this._updateDevPanel();
     this.processNext();
+  }
+
+  /* ============================================
+   *  v3 多角色系统
+   * ============================================ */
+
+  /** 角色注册表 */
+  CHARACTERS = {
+    qi: {
+      id: 'qi',
+      name: '柒',
+      fullName: 'RC-7',
+      avatarClass: 'avatar-qi',
+      activeHours: null,        // AI——任何时候都在
+      firstMessage: '你好。我是 RC-7。请告诉我你目前的状态。不是定义。是起点。',
+      preview: '',
+      unread: 0,
+      routeLabel: '爱是在场'
+    },
+    xia: {
+      id: 'xia',
+      name: '夏萤',
+      fullName: '夏萤',
+      avatarClass: 'avatar-xia',
+      activeHours: [12, 14, 18, 22],  // 午休+下班后+睡前
+      firstMessage: null,              // 由误发消息事件触发
+      preview: '',
+      unread: 0,
+      routeLabel: '爱是被看见'
+    },
+    shen: {
+      id: 'shen',
+      name: '沈夜',
+      fullName: '沈夜',
+      avatarClass: 'avatar-shen',
+      activeHours: [23, 0, 1, 2, 3],  // 深夜
+      firstMessage: null,
+      preview: '',
+      unread: 0,
+      routeLabel: '爱是被懂得'
+    },
+    adu: {
+      id: 'adu',
+      name: '阿渡',
+      fullName: '阿渡',
+      avatarClass: 'avatar-adu',
+      activeHours: null,               // 不固定
+      firstMessage: null,
+      preview: '',
+      unread: 0,
+      routeLabel: '不孤独'
+    }
+  };
+
+  /** 当前活跃的角色列表（随剧情推进解锁） */
+  _activeCharacters = ['qi'];
+
+  /** 每个角色的独立消息历史 */
+  _characterMessages = {};
+
+  /** 当前打开的角色（null=通讯录视图） */
+  _currentCharacter = null;
+
+  /** 路线状态 */
+  _currentRoute = null;  // null | 'qi' | 'xia' | 'shen' | 'adu'
+
+  /** 初始化通讯录 */
+  _initContactList() {
+    this._renderContactList();
+    // 通讯录列表点击
+    const contactList = document.getElementById('contact-list');
+    if (contactList) {
+      contactList.addEventListener('click', (e) => {
+        const item = e.target.closest('.contact-item');
+        if (!item) return;
+        const charId = item.dataset.charId;
+        if (charId && this._activeCharacters.includes(charId)) {
+          this.openChat(charId);
+        }
+      });
+    }
+    // 点击场景标题→返回通讯录
+    if (this.sceneTitle) {
+      this.sceneTitle.addEventListener('click', () => {
+        if (this._currentCharacter && !this.isWaitingForChoice) {
+          this.closeChat();
+        }
+      });
+      this.sceneTitle.style.cursor = 'pointer';
+    }
+  }
+
+  /** 渲染通讯录列表 */
+  _renderContactList() {
+    const container = document.getElementById('contact-items');
+    if (!container) return;
+    container.innerHTML = '';
+
+    for (const charId of this._activeCharacters) {
+      const char = this.CHARACTERS[charId];
+      if (!char) continue;
+
+      const item = document.createElement('div');
+      item.className = 'contact-item';
+      item.dataset.charId = charId;
+
+      const msgs = this._characterMessages[charId] || [];
+      const lastMsg = msgs.length > 0 ? msgs[msgs.length - 1] : null;
+      const preview = lastMsg
+        ? (lastMsg.text || '').substring(0, 30) + ((lastMsg.text || '').length > 30 ? '…' : '')
+        : char.firstMessage || '';
+
+      item.innerHTML = `
+        <div class="contact-avatar ${char.avatarClass}"></div>
+        <div class="contact-info">
+          <div class="contact-name">${char.name}</div>
+          <div class="contact-preview">${preview || ''}</div>
+        </div>
+        <div class="contact-badge${char.unread > 0 ? '' : ' hidden'}">${char.unread || ''}</div>
+      `;
+      container.appendChild(item);
+    }
+  }
+
+  /** 解锁新角色 */
+  unlockCharacter(charId) {
+    if (!this._activeCharacters.includes(charId)) {
+      this._activeCharacters.push(charId);
+      this._characterMessages[charId] = [];
+      this.CHARACTERS[charId].preview = '';
+      this.CHARACTERS[charId].unread = 1;
+      this._renderContactList();
+    }
+  }
+
+  /** 打开与某个角色的聊天 */
+  openChat(charId) {
+    const char = this.CHARACTERS[charId];
+    if (!char) return;
+
+    this._currentCharacter = charId;
+    char.unread = 0;
+
+    // 切换视图
+    document.getElementById('contact-list').classList.add('hidden');
+    document.getElementById('chat-area').classList.remove('hidden');
+    this.choicesArea.classList.add('hidden');
+    this.hideTapHint();
+
+    // 更新标题
+    this.sceneTitle.textContent = char.name;
+    this.dayIndicator.textContent = char.routeLabel || '';
+
+    // 恢复该角色的消息历史
+    this.messageList.innerHTML = '';
+    const msgs = this._characterMessages[charId] || [];
+    for (const msg of msgs) {
+      this.renderMessageInstant(msg.type, msg.text);
+    }
+    this.scrollToBottom();
+
+    // 如果没有历史消息（首次打开），触发角色的第一个事件
+    if (msgs.length === 0) {
+      this._triggerFirstContact(charId);
+    }
+
+    this._renderContactList();
+  }
+
+  /** 关闭聊天，返回通讯录 */
+  closeChat() {
+    // 保存当前消息到该角色的历史
+    if (this._currentCharacter) {
+      this._characterMessages[this._currentCharacter] = [...this.messageHistory];
+      // 更新预览
+      const msgs = this._characterMessages[this._currentCharacter];
+      if (msgs.length > 0) {
+        const last = msgs[msgs.length - 1];
+        this.CHARACTERS[this._currentCharacter].preview = (last.text || '').substring(0, 30);
+      }
+    }
+
+    // 切换视图
+    this._currentCharacter = null;
+    this.messageList.innerHTML = '';
+    this.messageHistory = [];
+    this.choicesArea.innerHTML = '';
+    this.choicesArea.classList.add('hidden');
+    this.hideTapHint();
+    this.isWaitingForChoice = false;
+
+    document.getElementById('chat-area').classList.add('hidden');
+    document.getElementById('contact-list').classList.remove('hidden');
+
+    // 更新标题
+    this.sceneTitle.textContent = '一年·房间';
+    this.dayIndicator.textContent = 'M' + (this._currentMonth || 1);
+
+    this._renderContactList();
+  }
+
+  /** 触发首次接触事件 */
+  _triggerFirstContact(charId) {
+    if (charId === 'qi') {
+      this.renderMessageInstant('rc', this.CHARACTERS.qi.firstMessage);
+      this._addToHistory('rc', this.CHARACTERS.qi.firstMessage);
+      this.showTapHint();
+    } else if (charId === 'xia') {
+      this.renderMessageInstant('narration', '—— 一条误发的消息 ——');
+      this._addToHistory('narration', '—— 一条误发的消息 ——');
+      this.renderMessageInstant('rc', '明天记得带伞。');
+      setTimeout(() => {
+        this.renderMessageInstant('narration', '（对方撤回了一条消息）');
+        this._addToHistory('narration', '（对方撤回了一条消息）');
+        this.renderMessageInstant('rc', '……不好意思，发错了。');
+        this.showTapHint();
+      }, 1500);
+    } else if (charId === 'shen') {
+      this.renderMessageInstant('rc', '你也睡不着？');
+      this._addToHistory('rc', '你也睡不着？');
+      this.showTapHint();
+    } else if (charId === 'adu') {
+      this.renderMessageInstant('rc', '今天送了 47 单。腿要断了。');
+      this._addToHistory('rc', '今天送了 47 单。腿要断了。');
+      this.showTapHint();
+    }
+  }
+
+  /* ============================================
+   *  v3 事件调度器
+   * ============================================ */
+
+  /** 当前月份（1-12） */
+  _currentMonth = 1;
+
+  /** 当前阶段 */
+  _currentPhase = 'contact';  // contact | deepen | route | ending
+
+  /** 已完成的事件 ID 集合 */
+  _completedEvents = new Set();
+
+  /** 推进月份 */
+  advanceMonth() {
+    this._currentMonth++;
+    if (this._currentMonth >= 4 && this._currentMonth <= 6) {
+      this._currentPhase = 'deepen';
+    } else if (this._currentMonth >= 7 && this._currentMonth <= 9) {
+      this._currentPhase = 'route';
+    } else if (this._currentMonth >= 10) {
+      this._currentPhase = 'ending';
+    }
+    this.dayIndicator.textContent = 'M' + this._currentMonth;
+  }
+
+  /** 获取当前时间段的活跃角色 */
+  getActiveCharactersNow() {
+    const hour = new Date().getHours();
+    const active = [];
+    for (const charId of this._activeCharacters) {
+      const char = this.CHARACTERS[charId];
+      if (!char.activeHours) {
+        active.push(charId);  // 无限制——随时在线
+      } else if (char.activeHours.includes(hour)) {
+        active.push(charId);
+      }
+    }
+    return active;
   }
 }

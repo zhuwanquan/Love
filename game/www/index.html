@@ -190,16 +190,22 @@
 
     <!-- ═══════════════ 游戏 UI ═══════════════ -->
     <div id="game-ui" class="hidden">
-      <!-- 顶部状态栏（微信风格） -->
+      <!-- 顶部状态栏 -->
       <header id="header">
         <button id="btn-menu" class="header-btn" title="菜单">☰</button>
-        <span id="scene-title">RC-7</span>
+        <span id="scene-title">一年·房间</span>
         <button id="btn-change-bg" class="header-btn" title="更换聊天背景">🖼</button>
-        <span id="day-indicator">Day 1</span>
+        <span id="day-indicator">M1</span>
       </header>
 
-      <!-- 对话区域 -->
-      <main id="chat-area">
+      <!-- ═══════ 通讯录列表 ═══════ -->
+      <div id="contact-list">
+        <div class="contact-header">消息</div>
+        <div id="contact-items"></div>
+      </div>
+
+      <!-- ═══════ 对话区域 ═══════ -->
+      <main id="chat-area" class="hidden">
         <div id="message-list"></div>
       </main>
 

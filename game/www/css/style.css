@@ -559,6 +559,140 @@ input[type="range"]:disabled {
 
 /* 图片展示区已移除 — 聊天界面不需要 */
 
+/* ── 通讯录列表（v3 多角色） ── */
+#contact-list {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--bg);
+}
+
+#contact-list.hidden { display: none; }
+
+.contact-header {
+  padding: 14px 16px 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 2;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: background 0.12s;
+  border-bottom: 1px solid var(--divider);
+}
+
+.contact-item:hover { background: var(--surface-hover); }
+.contact-item:active { background: #e8ede6; }
+
+.contact-avatar {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* 柒——灰色圆形+琥珀光点 */
+.avatar-qi {
+  background: #e0e0e0;
+}
+.avatar-qi::after {
+  content: '';
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #c8a96e;
+  box-shadow: 0 0 6px rgba(200, 169, 110, 0.5);
+}
+
+/* 夏萤——暖橙色+微光晕 */
+.avatar-xia {
+  background: #fff3e0;
+}
+.avatar-xia::after {
+  content: '';
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: #f4a460;
+  box-shadow: 0 0 12px rgba(244, 164, 96, 0.4);
+}
+
+/* 沈夜——深蓝+白色小月亮 */
+.avatar-shen {
+  background: #1a1a2e;
+}
+.avatar-shen::after {
+  content: '';
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #ffffff;
+  opacity: 0.7;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+  position: relative;
+  top: -4px;
+  left: 4px;
+}
+
+/* 阿渡——灰绿+雨滴感 */
+.avatar-adu {
+  background: #c8d6c0;
+}
+.avatar-adu::after {
+  content: '';
+  width: 6px; height: 10px;
+  border-radius: 50%;
+  background: #5a7a50;
+  opacity: 0.6;
+  box-shadow: 0 2px 4px rgba(90, 122, 80, 0.3);
+}
+
+.contact-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.contact-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+}
+
+.contact-preview {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.contact-badge {
+  flex-shrink: 0;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}
+
+.contact-badge.hidden { display: none; }
+
 /* ── 聊天区域（微信风格） ── */
 #chat-area {
   flex: 1;
