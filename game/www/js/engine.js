@@ -720,10 +720,10 @@ class GameEngine {
     // 三个点（白色气泡内）
     const dots = document.createElement('div');
     dots.className = 'typing-dots';
-    dots.style.background = '#ffffff';
+    dots.style.background = '#f0f0f0';
     dots.style.borderRadius = '16px';
     dots.style.borderBottomLeftRadius = '4px';
-    dots.style.boxShadow = '0 1px 3px rgba(0,0,0,0.12)';
+    dots.style.boxShadow = '0 1px 3px rgba(0,0,0,0.10)';
     for (let i = 0; i < 3; i++) {
       const dot = document.createElement('span');
       dot.className = 'typing-dot';
