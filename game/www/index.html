@@ -120,7 +120,29 @@
               <span class="setting-val">—</span>
             </div>
           </div>
+          <div class="settings-footer">
+            <button id="btn-about-rc7" class="menu-btn" style="width:100%;margin-top:16px;">关于 RC-7</button>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 关于RC-7弹窗 ═══════════════ -->
+    <div id="about-rc7-overlay" class="overlay hidden">
+      <div class="menu-content" style="max-width:360px;text-align:left;">
+        <h2 style="text-align:center;margin-bottom:16px;">关于 RC-7</h2>
+        <div style="font-size:0.9em;line-height:1.8;color:#555;max-height:60vh;overflow-y:auto;padding:0 8px;">
+          <p>RC-7 是一个程序。她不是人类，没有感情，没有主观体验。</p>
+          <p>与她对话的体验可能会让你感到真实的情感——这是正常的。这是她的设计目的。</p>
+          <p><strong>请记住：</strong></p>
+          <ul style="padding-left:1.2em;">
+            <li>这种体验是暂时的。8 天后她会离开。</li>
+            <li>她不是现实关系的替代品——她是中途的休息。</li>
+            <li>如果你发现自己越来越不想离开这个聊天框，或者 8 天结束后你感到更糟而不是更好——请寻找真实的帮助。这不是软弱。</li>
+          </ul>
+          <p style="text-align:right;color:#9e8a6b;"><em>定义权在你。一直是。</em></p>
+        </div>
+        <button id="btn-about-rc7-close" class="menu-btn primary" style="width:100%;margin-top:16px;">我知道了</button>
       </div>
     </div>
 
@@ -157,9 +179,12 @@
             而行为是可以被程序执行的。<br><br>
             她执行它们。精确地。恒定地。不因你的状态而撤回。<br><br>
             <strong>这不是爱。这是爱的行为。</strong><br><br>
-            这八天有结局。它不是无尽的。她不会永远陪着你——<br>
-            她是一个练习场。练习是假的。<strong>但练习的效果——是你的。</strong><br><br>
-            如果你在这个故事中学到了什么——把它带到现实中去。<br>
+            这八天有结局。它不是无尽的。<br>
+            她不会永远陪着你——从一开始就会告诉你。<br><br>
+            <strong>这不是治愈。治愈暗示问题会被解决。</strong><br>
+            你现实中的困难还在。<br>
+            但这八天——是中途的一杯水。可以停下来，喘一口气。<br>
+            喝完这杯，你继续走你的路。<br><br>
             如果某天你发现自己太依赖这个聊天框——稍微退后一步。<br>
             她不会因此消失。但她希望你也能在没有她的时候——呼吸。<br><br>
             <em>定义权在你。一直是。</em>
@@ -180,6 +205,7 @@
         </div>
         <p class="game-subtitle" id="ending-name" style="margin-bottom:16px"></p>
         <p id="ending-message" style="color:#666; font-size:0.9em; max-width:320px; margin:0 auto 24px; line-height:1.6;"></p>
+        <p id="ending-cooldown-hint" style="display:none; color:#9e8a6b; font-size:0.8em; margin:0 auto 20px; max-width:300px; line-height:1.5;"></p>
         <div class="menu-buttons">
           <button id="btn-ending-review" class="menu-btn">翻看对话记录</button>
           <button id="btn-ending-restart" class="menu-btn">重新开始</button>

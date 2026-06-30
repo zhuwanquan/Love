@@ -604,19 +604,21 @@ input[type="range"]:disabled {
   position: relative;
 }
 
-/* 柒——灰色圆形+琥珀光点 */
+/* 柒——深灰圆形+琥珀光点，呼吸感 */
 .avatar-qi {
-  background: #e0e0e0;
+  background: #3a3a3a;
+  box-shadow: 0 0 0 1px rgba(200, 169, 110, 0.15);
 }
 .avatar-qi::after {
   content: '';
   width: 8px; height: 8px;
   border-radius: 50%;
   background: #c8a96e;
-  box-shadow: 0 0 6px rgba(200, 169, 110, 0.5);
+  box-shadow: 0 0 6px rgba(200, 169, 110, 0.5), 0 0 12px rgba(200, 169, 110, 0.2);
+  animation: amberBreath 4s ease-in-out infinite;
 }
 
-/* 夏萤——暖橙色+微光晕 */
+/* 夏萤——暖橙色+微光晕，摇曳感 */
 .avatar-xia {
   background: #fff3e0;
 }
@@ -626,9 +628,15 @@ input[type="range"]:disabled {
   border-radius: 50%;
   background: #f4a460;
   box-shadow: 0 0 12px rgba(244, 164, 96, 0.4);
+  animation: fireflyFlicker 5s ease-in-out infinite;
+}
+@keyframes fireflyFlicker {
+  0%, 100% { opacity: 0.8; box-shadow: 0 0 10px rgba(244, 164, 96, 0.35); }
+  30%      { opacity: 1;   box-shadow: 0 0 16px rgba(244, 164, 96, 0.55); }
+  60%      { opacity: 0.75; box-shadow: 0 0 8px rgba(244, 164, 96, 0.25); }
 }
 
-/* 沈夜——深蓝+白色小月亮 */
+/* 沈夜——深蓝+白色小月亮，冷呼吸 */
 .avatar-shen {
   background: #1a1a2e;
 }
@@ -642,9 +650,14 @@ input[type="range"]:disabled {
   position: relative;
   top: -4px;
   left: 4px;
+  animation: moonGlow 6s ease-in-out infinite;
+}
+@keyframes moonGlow {
+  0%, 100% { opacity: 0.6; box-shadow: 0 0 6px rgba(255, 255, 255, 0.2); }
+  50%      { opacity: 0.85; box-shadow: 0 0 12px rgba(255, 255, 255, 0.45); }
 }
 
-/* 阿渡——灰绿+雨滴感 */
+/* 阿渡——灰绿+雨滴感，间歇浮现 */
 .avatar-adu {
   background: #c8d6c0;
 }
@@ -655,6 +668,11 @@ input[type="range"]:disabled {
   background: #5a7a50;
   opacity: 0.6;
   box-shadow: 0 2px 4px rgba(90, 122, 80, 0.3);
+  animation: rainPulse 3.5s ease-in-out infinite;
+}
+@keyframes rainPulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%      { opacity: 0.75; transform: scale(1.1); }
 }
 
 .contact-info {
@@ -709,14 +727,22 @@ input[type="range"]:disabled {
   background-repeat: no-repeat;
 }
 
-/* 背景遮罩 — 纯白背景不需要遮罩 */
-#chat-area::before {
+/* 琥珀暖光层 — RC-7存在时从左上渗入，像她头像的光点融进了空间 */
+#chat-area::after {
   content: '';
   position: absolute;
-  inset: 0;
-  background: transparent;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 160px;
+  background: radial-gradient(ellipse at 42px 48px, rgba(200, 169, 110, 0.07) 0%, transparent 65%);
   z-index: 0;
   pointer-events: none;
+  opacity: 0;
+  transition: opacity 3s ease;
+}
+#chat-area.has-rc::after {
+  opacity: 1;
 }
 
 #chat-area::-webkit-scrollbar {
@@ -770,17 +796,18 @@ input[type="range"]:disabled {
   animation: fadeIn 0.25s ease-out;
 }
 
-/* RC-7 头像 — 小圆形，琥珀色光点 */
+/* RC-7 头像 — 深灰圆形，琥珀色光点，呼吸感 */
 .rc-avatar {
   flex-shrink: 0;
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #e0e0e0;
+  background: #3a3a3a;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 0 0 1px rgba(200, 169, 110, 0.15);
 }
 .rc-avatar::after {
   content: '';
@@ -788,8 +815,13 @@ input[type="range"]:disabled {
   height: 7px;
   border-radius: 50%;
   background: var(--amber);
-  opacity: 0.85;
-  box-shadow: 0 0 5px rgba(200, 169, 110, 0.5);
+  opacity: 0.9;
+  box-shadow: 0 0 6px rgba(200, 169, 110, 0.6), 0 0 12px rgba(200, 169, 110, 0.25);
+  animation: amberBreath 4s ease-in-out infinite;
+}
+@keyframes amberBreath {
+  0%, 100% { opacity: 0.85; box-shadow: 0 0 6px rgba(200, 169, 110, 0.5), 0 0 12px rgba(200, 169, 110, 0.2); }
+  50%      { opacity: 1;    box-shadow: 0 0 8px rgba(200, 169, 110, 0.75), 0 0 16px rgba(200, 169, 110, 0.35); }
 }
 
 /* RC 气泡 — 白色，左对齐，小尾巴 */
@@ -883,15 +915,16 @@ input[type="range"]:disabled {
   display: flex;
   gap: 4px;
   padding: 12px 16px;
-  background: #f0f0f0;
+  background: #f5f2ed;
   border-radius: 16px;
   border-bottom-left-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.10);
 }
 .typing-indicator .typing-dot {
   width: 6px;
   height: 6px;
-  background: #bbb;
+  background: var(--amber);
+  opacity: 0.7;
   border-radius: 50%;
   animation: typingBounce 1.4s ease-in-out infinite;
 }
@@ -1021,12 +1054,13 @@ input[type="range"]:disabled {
   50%      { opacity: 1; }
 }
 
-/* ── 打字指示器（预留） ── */
+/* ── 打字指示器 ── */
 .typing-dot {
   display: inline-block;
   width: 6px;
   height: 6px;
-  background: var(--accent-dim);
+  background: var(--amber);
+  opacity: 0.7;
   border-radius: 50%;
   margin: 0 2px;
   animation: typingBounce 1.4s ease-in-out infinite;

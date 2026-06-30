@@ -187,6 +187,14 @@ class GameEngine {
       this._saveSettings();
     });
 
+    // 关于RC-7
+    this._on('btn-about-rc7', 'click', () => {
+      document.getElementById('about-rc7-overlay').classList.remove('hidden');
+    });
+    this._on('btn-about-rc7-close', 'click', () => {
+      document.getElementById('about-rc7-overlay').classList.add('hidden');
+    });
+
     // 确认对话框
     this._on('btn-confirm-yes', 'click', () => {
       const panel = document.getElementById('confirm-dialog');
@@ -350,6 +358,7 @@ class GameEngine {
     this._completedEvents = new Set();
     // 显示通讯录
     document.getElementById('chat-area').classList.add('hidden');
+    this.chatArea.classList.remove('has-rc');
     document.getElementById('contact-list').classList.remove('hidden');
     this.updateMeta('一年·房间', 'M1');
     this._renderContactList();
@@ -403,7 +412,7 @@ class GameEngine {
   }
 
   _hideAllOverlays() {
-    const overlays = ['main-menu', 'pause-menu', 'save-panel', 'load-panel', 'settings-panel', 'confirm-dialog', 'guide-overlay', 'ending-panel'];
+    const overlays = ['main-menu', 'pause-menu', 'save-panel', 'load-panel', 'settings-panel', 'confirm-dialog', 'guide-overlay', 'ending-panel', 'about-rc7-overlay'];
     overlays.forEach(id => {
       const el = document.getElementById(id);
       if (el) el.classList.add('hidden');
@@ -607,6 +616,10 @@ class GameEngine {
   }
 
   _showEndingPanel(sceneId) {
+    // 记录结局完成时间（用于冷却期提醒）
+    this._lastEndingTime = Date.now();
+    try { localStorage.setItem('rc7_last_ending', this._lastEndingTime); } catch (e) {}
+
     setTimeout(() => {
       this._hideAllOverlays();
       const endingNameEl = document.getElementById('ending-name');
@@ -624,6 +637,21 @@ class GameEngine {
       };
       if (endingNameEl) endingNameEl.textContent = `结局 ${endingNames[sceneId] || ''}`;
       if (endingMsgEl) endingMsgEl.textContent = endingMessages[sceneId] || '';
+
+      // 结局冷却期提示（30分钟）
+      const cooldownEl = document.getElementById('ending-cooldown-hint');
+      if (cooldownEl) {
+        const minsSince = this._lastEndingTime
+          ? Math.floor((Date.now() - this._lastEndingTime) / 60000)
+          : 999;
+        if (minsSince < 30) {
+          cooldownEl.textContent = `你刚才经历了8天的情感体验。给自己一些时间消化。（距离上次结束${minsSince}分钟）`;
+          cooldownEl.style.display = '';
+        } else {
+          cooldownEl.style.display = 'none';
+        }
+      }
+
       document.getElementById('ending-panel').classList.remove('hidden');
       this.isPaused = true;
     }, 800);
@@ -895,8 +923,13 @@ class GameEngine {
       if (opt._locked) {
         btn.classList.add('choice-locked');
         btn.textContent += ' 🔒';
-        btn.title = '条件未满足';
-        btn.disabled = true;
+        btn.title = opt._lockedReason || '当前条件不满足';
+        btn.disabled = false; // 允许点击以显示提示
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this._showLockReason(opt._lockedReason || '当前条件不满足');
+        });
+        return; // 跳过正常 click 绑定
       }
 
       btn.addEventListener('click', () => {
@@ -907,6 +940,43 @@ class GameEngine {
     });
 
     this.scrollToBottom();
+  }
+
+  /** 显示锁定选项的原因提示 */
+  _showLockReason(reason) {
+    // 创建或复用提示元素
+    let tip = document.getElementById('lock-reason-tip');
+    if (!tip) {
+      tip = document.createElement('div');
+      tip.id = 'lock-reason-tip';
+      tip.style.cssText = 'text-align:center;color:#9e8a6b;font-size:0.85em;padding:8px 16px;margin-bottom:8px;opacity:0;transition:opacity 0.3s;';
+      this.choicesArea.insertBefore(tip, this.choicesArea.firstChild);
+    }
+    tip.textContent = `💡 ${reason}`;
+    tip.style.opacity = '1';
+    clearTimeout(this._lockReasonTimer);
+    this._lockReasonTimer = setTimeout(() => {
+      tip.style.opacity = '0';
+    }, 2500);
+  }
+
+  /** 检测危机关键词（AI模式自由输入时调用） */
+  _checkCrisisKeywords(text) {
+    const patterns = [
+      /自杀|不想活|结束生命|去死|死掉|想死/,
+      /自残|割腕|跳楼|上吊|安眠药/,
+    ];
+    for (const p of patterns) {
+      if (p.test(text)) {
+        this.renderMessageInstant('narration',
+          '—— 如果你正在经历困难的时刻，请考虑联系专业帮助。\n' +
+          '全国心理援助热线：400-161-9995\n' +
+          '这不是软弱。这是对自己负责。 ——'
+        );
+        return true;
+      }
+    }
+    return false;
   }
 
   selectChoice(index, options) {
@@ -1260,7 +1330,7 @@ class GameEngine {
   _buildSaveData(slot, label) {
     const dayTitle = this.dayIndicator ? this.dayIndicator.textContent : '';
     return {
-      version: 2,
+      version: 3,
       slot: slot,
       timestamp: Date.now(),
       label: label || dayTitle || '未命名',
@@ -1269,6 +1339,13 @@ class GameEngine {
       variables: JSON.parse(JSON.stringify(this.variables)),
       messageHistory: this.messageHistory.slice(-500), // 最近500条
       dayTitle: dayTitle,
+      // v3: 多角色状态
+      currentCharacter: this._currentCharacter,
+      activeCharacters: [...this._activeCharacters],
+      characterMessages: JSON.parse(JSON.stringify(this._characterMessages)),
+      currentMonth: this._currentMonth,
+      currentPhase: this._currentPhase,
+      completedEvents: [...this._completedEvents],
     };
   }
 
@@ -1348,6 +1425,21 @@ class GameEngine {
     }
 
     this._currentSaveSlot = saveData.slot;
+
+    // v3: 恢复多角色状态
+    if (saveData.version >= 3) {
+      this._currentCharacter = saveData.currentCharacter || null;
+      this._activeCharacters = saveData.activeCharacters || ['qi'];
+      this._characterMessages = saveData.characterMessages || {};
+      this._currentMonth = saveData.currentMonth || 1;
+      this._currentPhase = saveData.currentPhase || 'contact';
+      this._completedEvents = new Set(saveData.completedEvents || []);
+      // 重建联系人列表和聊天视图
+      this._renderContactList();
+      if (this._currentCharacter) {
+        this.openChat(this._currentCharacter);
+      }
+    }
 
     // 继续游戏
     if (this.currentScene) {
@@ -1717,6 +1809,13 @@ class GameEngine {
     this.choicesArea.classList.add('hidden');
     this.hideTapHint();
 
+    // 柒的琥珀暖光
+    if (charId === 'qi') {
+      this.chatArea.classList.add('has-rc');
+    } else {
+      this.chatArea.classList.remove('has-rc');
+    }
+
     // 更新标题
     this.sceneTitle.textContent = char.name;
     this.dayIndicator.textContent = char.routeLabel || '';
@@ -1749,6 +1848,9 @@ class GameEngine {
         this.CHARACTERS[this._currentCharacter].preview = (last.text || '').substring(0, 30);
       }
     }
+
+    // 移除琥珀暖光
+    this.chatArea.classList.remove('has-rc');
 
     // 切换视图
     this._currentCharacter = null;
